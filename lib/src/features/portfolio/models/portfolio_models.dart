@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-enum PortfolioSection { home, about, work, experience, skills, contact }
+enum PortfolioSection { home, about, services, works, blogs, contact }
 
 PortfolioSection? portfolioSectionFromAnchor(String anchor) {
   for (final section in PortfolioSection.values) {
@@ -17,18 +17,18 @@ extension PortfolioSectionX on PortfolioSection {
   String get label => switch (this) {
     PortfolioSection.home => 'Home',
     PortfolioSection.about => 'About',
-    PortfolioSection.work => 'Projects',
-    PortfolioSection.experience => 'Experience',
-    PortfolioSection.skills => 'Skills',
+    PortfolioSection.services => 'Services',
+    PortfolioSection.works => 'Works',
+    PortfolioSection.blogs => 'Blogs',
     PortfolioSection.contact => 'Contact',
   };
 
   String get anchor => switch (this) {
     PortfolioSection.home => 'home',
     PortfolioSection.about => 'about',
-    PortfolioSection.work => 'projects',
-    PortfolioSection.experience => 'experience',
-    PortfolioSection.skills => 'skills',
+    PortfolioSection.services => 'services',
+    PortfolioSection.works => 'works',
+    PortfolioSection.blogs => 'blogs',
     PortfolioSection.contact => 'contact',
   };
 }

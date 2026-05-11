@@ -14,15 +14,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('Aniket Parihar'), findsWidgets);
-    expect(
-      find.text(
-        'Flutter engineer building products around maps, motion and scale.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('MY NAME'), findsOneWidget);
+    expect(find.text('IS ANIKET'), findsOneWidget);
+    expect(find.text('PARIHAR...'), findsOneWidget);
+    expect(find.text("Let's talk with me"), findsOneWidget);
   });
 
-  testWidgets('mobile menu expands with resume action', (
+  testWidgets('compact layout renders side rail navigation', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(430, 932);
@@ -35,11 +33,12 @@ void main() {
 
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
     expect(find.byIcon(Icons.close_rounded), findsNothing);
-    expect(find.widgetWithText(TextButton, 'Projects'), findsNothing);
     await tester.tap(find.byIcon(Icons.menu_rounded));
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-    expect(find.widgetWithText(TextButton, 'Projects'), findsOneWidget);
+    expect(find.text('WORKS'), findsWidgets);
+    expect(find.text('CONTACT'), findsWidgets);
+    expect(find.text('Download CV'), findsWidgets);
   });
 }
