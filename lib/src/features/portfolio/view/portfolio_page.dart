@@ -9,7 +9,7 @@ import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/breakpoints.dart';
 import '../../../core/widgets/reveal_on_scroll.dart';
 import '../bloc/portfolio_bloc.dart';
-import '../data/portfolio_content.dart';
+import '../data/editable_portfolio_store.dart';
 import '../models/portfolio_models.dart';
 
 class PortfolioPage extends StatefulWidget {
@@ -90,14 +90,23 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
   Future<void> _launch(String url) async {
     final uri = Uri.parse(url);
-    final launched = await launchUrl(
-      uri,
-      webOnlyWindowName: uri.scheme.startsWith('http') ? '_blank' : null,
-    );
+    late final bool launched;
+
+    try {
+      launched = await launchUrl(
+        uri,
+        webOnlyWindowName: uri.scheme.startsWith('http') ? '_blank' : null,
+      );
+    } on Exception {
+      launched = false;
+    }
 
     if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to open ${uri.toString()}')),
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Unable to open ${uri.toString()}'),
+        ),
       );
     }
   }
@@ -114,7 +123,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final horizontalPadding = Breakpoints.horizontalPadding(width);
-        final compactHeader = width < 1040;
+        final compactHeader = width < 1180;
 
         return BlocConsumer<PortfolioBloc, PortfolioState>(
           listenWhen: (previous, current) =>
@@ -139,6 +148,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                               12,
                             ),
                             child: _PortfolioHeader(
+                              availableWidth: width - (horizontalPadding * 2),
                               activeSection: state.activeSection,
                               isMenuOpen: state.isMenuOpen,
                               isMobile: compactHeader,
@@ -361,6 +371,7 @@ class _BlurCircle extends StatelessWidget {
 
 class _PortfolioHeader extends StatelessWidget {
   const _PortfolioHeader({
+    required this.availableWidth,
     required this.activeSection,
     required this.isMenuOpen,
     required this.isMobile,
@@ -369,6 +380,7 @@ class _PortfolioHeader extends StatelessWidget {
     required this.onSectionTap,
   });
 
+  final double availableWidth;
   final PortfolioSection activeSection;
   final bool isMenuOpen;
   final bool isMobile;
@@ -379,6 +391,7 @@ class _PortfolioHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final compactBrand = availableWidth < 430;
     final navItems = PortfolioSection.values
         .map(
           (section) => _HeaderNavButton(
@@ -408,7 +421,7 @@ class _PortfolioHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              const _BrandLockup(),
+              Flexible(child: _BrandLockup(compact: compactBrand)),
               const Spacer(),
               if (!isMobile) ...[
                 Wrap(spacing: 6, children: navItems),
@@ -512,11 +525,14 @@ class _ScrollProgressBar extends StatelessWidget {
 }
 
 class _BrandLockup extends StatelessWidget {
-  const _BrandLockup();
+  const _BrandLockup({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final content = PortfolioScope.of(context);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -537,26 +553,34 @@ class _BrandLockup extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              PortfolioContent.name,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+        if (!compact) ...[
+          const SizedBox(width: 12),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  content.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  'Flutter • BLoC • GIS',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppPalette.ink.withValues(alpha: 0.62),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              'Flutter • BLoC • GIS',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppPalette.ink.withValues(alpha: 0.62),
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ],
     );
   }
@@ -640,10 +664,10 @@ class _HomePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final stacked = constraints.maxWidth < 1040;
+        final stacked = constraints.maxWidth < 1160;
 
         return Container(
-          padding: EdgeInsets.all(stacked ? 18 : 26),
+          padding: EdgeInsets.all(stacked ? 16 : 22),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(40),
@@ -659,15 +683,17 @@ class _HomePanel extends StatelessWidget {
           child: stacked
               ? Column(
                   children: [
-                    RevealOnScroll(child: _SidebarRail(onLaunch: onLaunch)),
-                    const SizedBox(height: 18),
                     RevealOnScroll(
-                      delay: const Duration(milliseconds: 120),
                       child: _HeroCanvas(
                         onProjectsTap: onProjectsTap,
                         onContactTap: onContactTap,
                         onResumeTap: onResumeTap,
                       ),
+                    ),
+                    const SizedBox(height: 18),
+                    RevealOnScroll(
+                      delay: const Duration(milliseconds: 120),
+                      child: _SidebarRail(onLaunch: onLaunch, dense: true),
                     ),
                   ],
                 )
@@ -675,14 +701,14 @@ class _HomePanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      flex: 4,
+                      flex: 3,
                       child: RevealOnScroll(
                         child: _SidebarRail(onLaunch: onLaunch),
                       ),
                     ),
-                    const SizedBox(width: 24),
+                    const SizedBox(width: 20),
                     Expanded(
-                      flex: 8,
+                      flex: 9,
                       child: RevealOnScroll(
                         delay: const Duration(milliseconds: 120),
                         child: _HeroCanvas(
@@ -701,16 +727,18 @@ class _HomePanel extends StatelessWidget {
 }
 
 class _SidebarRail extends StatelessWidget {
-  const _SidebarRail({required this.onLaunch});
+  const _SidebarRail({required this.onLaunch, this.dense = false});
 
   final ValueChanged<String> onLaunch;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final content = PortfolioScope.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(dense ? 18 : 22),
       decoration: BoxDecoration(
         color: AppPalette.surface,
         borderRadius: BorderRadius.circular(30),
@@ -725,29 +753,62 @@ class _SidebarRail extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Text(PortfolioContent.name, style: theme.textTheme.headlineMedium),
+          Text(content.name, style: theme.textTheme.headlineMedium),
           const SizedBox(height: 8),
           Text(
-            PortfolioContent.title,
+            content.title,
             style: theme.textTheme.titleMedium?.copyWith(
               color: AppPalette.ink.withValues(alpha: 0.72),
             ),
           ),
           const SizedBox(height: 8),
-          Text(PortfolioContent.location, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 22),
-          _InfoStrip(
-            title: 'Professional focus',
-            body:
-                'Scalable Flutter interfaces, location-driven systems, strong API integration and polished interaction design.',
-          ),
-          const SizedBox(height: 16),
-          _InfoStrip(
-            title: 'Academic foundation',
-            body:
-                '${PortfolioContent.educationTitle} • ${PortfolioContent.educationResult}',
-          ),
-          const SizedBox(height: 22),
+          Text(content.location, style: theme.textTheme.bodyMedium),
+          SizedBox(height: dense ? 16 : 22),
+          if (dense)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 720;
+                return Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    SizedBox(
+                      width: compact
+                          ? constraints.maxWidth
+                          : (constraints.maxWidth - 16) / 2,
+                      child: const _InfoStrip(
+                        title: 'Professional focus',
+                        body:
+                            'Scalable Flutter interfaces, location-driven systems, strong API integration and polished interaction design.',
+                      ),
+                    ),
+                    SizedBox(
+                      width: compact
+                          ? constraints.maxWidth
+                          : (constraints.maxWidth - 16) / 2,
+                      child: _InfoStrip(
+                        title: 'Academic foundation',
+                        body:
+                            '${content.educationTitle} • ${content.educationResult}',
+                      ),
+                    ),
+                  ],
+                );
+              },
+            )
+          else ...[
+            _InfoStrip(
+              title: 'Professional focus',
+              body:
+                  'Scalable Flutter interfaces, location-driven systems, strong API integration and polished interaction design.',
+            ),
+            const SizedBox(height: 16),
+            _InfoStrip(
+              title: 'Academic foundation',
+              body: '${content.educationTitle} • ${content.educationResult}',
+            ),
+          ],
+          SizedBox(height: dense ? 18 : 22),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -755,59 +816,60 @@ class _SidebarRail extends StatelessWidget {
               _MiniActionChip(
                 label: 'LinkedIn',
                 icon: Icons.work_outline_rounded,
-                onTap: () => onLaunch(PortfolioContent.linkedIn),
+                onTap: () => onLaunch(content.linkedIn),
               ),
               _MiniActionChip(
                 label: 'GitHub',
                 icon: Icons.code_rounded,
-                onTap: () => onLaunch(PortfolioContent.github),
+                onTap: () => onLaunch(content.github),
               ),
               _MiniActionChip(
                 label: 'CodeChef',
                 icon: Icons.emoji_events_outlined,
-                onTap: () => onLaunch(PortfolioContent.codeChef),
+                onTap: () => onLaunch(content.codeChef),
               ),
             ],
           ),
-          const SizedBox(height: 26),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppPalette.line),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Highlights', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 14),
-                for (final item in PortfolioContent.achievements)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.value,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: AppPalette.cobalt,
-                            fontWeight: FontWeight.w800,
+          SizedBox(height: dense ? 20 : 26),
+          if (!dense)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppPalette.line),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Highlights', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 14),
+                  for (final item in content.achievements)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.value,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: AppPalette.cobalt,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            item.label,
-                            style: theme.textTheme.bodyMedium,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              item.label,
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -891,10 +953,10 @@ class _HeroCanvas extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final stacked = constraints.maxWidth < 940;
+        final stacked = constraints.maxWidth < 760;
 
         return Container(
-          padding: EdgeInsets.all(stacked ? 22 : 28),
+          padding: EdgeInsets.all(stacked ? 20 : 30),
           decoration: BoxDecoration(
             gradient: AppPalette.heroGradient,
             borderRadius: BorderRadius.circular(34),
@@ -937,7 +999,7 @@ class _HeroCanvas extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      flex: 6,
+                      flex: 7,
                       child: _HeroCopyBlock(
                         onProjectsTap: onProjectsTap,
                         onContactTap: onContactTap,
@@ -946,7 +1008,7 @@ class _HeroCanvas extends StatelessWidget {
                     ),
                     const SizedBox(width: 24),
                     const Expanded(
-                      flex: 6,
+                      flex: 5,
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: _HeroVisualPanel(),
@@ -976,6 +1038,7 @@ class _HeroCopyBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final content = PortfolioScope.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -997,20 +1060,29 @@ class _HeroCopyBlock extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 28),
-        Text(
-          PortfolioContent.headline,
-          style: theme.textTheme.displaySmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            height: 1.05,
-            letterSpacing: -1.6,
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final compactHeadline = constraints.maxWidth < 480;
+            return Text(
+              content.headline,
+              style:
+                  (compactHeadline
+                          ? theme.textTheme.headlineLarge
+                          : theme.textTheme.displaySmall)
+                      ?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        height: 1.04,
+                        letterSpacing: compactHeadline ? -1.0 : -1.8,
+                      ),
+            );
+          },
         ),
         const SizedBox(height: 18),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
-            PortfolioContent.summary,
+            content.summary,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
             ),
@@ -1071,7 +1143,7 @@ class _HeroCopyBlock extends StatelessWidget {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: PortfolioContent.heroTags
+          children: content.heroTags
               .map((tag) => _TagChip(label: tag))
               .toList(),
         ),
@@ -1083,7 +1155,7 @@ class _HeroCopyBlock extends StatelessWidget {
               spacing: 14,
               runSpacing: 14,
               children: [
-                for (final stat in PortfolioContent.stats)
+                for (final stat in content.stats)
                   SizedBox(
                     width: compact ? constraints.maxWidth : 210,
                     child: _HeroStatCard(stat: stat),
@@ -1136,6 +1208,8 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return MouseRegion(
       onEnter: (_) => _setHovered(true),
       onExit: (_) => _setHovered(false),
@@ -1143,8 +1217,8 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
         duration: const Duration(milliseconds: 320),
         curve: Curves.easeOutCubic,
         transform: Matrix4.identity()..translate(0.0, _isHovered ? -10.0 : 0.0),
-        constraints: const BoxConstraints(maxWidth: 420),
-        padding: const EdgeInsets.all(18),
+        constraints: const BoxConstraints(maxWidth: 400),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: _isHovered ? 0.14 : 0.1),
           borderRadius: BorderRadius.circular(34),
@@ -1175,9 +1249,9 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(30),
@@ -1242,10 +1316,10 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                           },
                           child: const _HeroImageFrame(),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(18),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(24),
@@ -1255,13 +1329,13 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                PortfolioContent.name,
+                                content.name,
                                 style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w800),
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                PortfolioContent.title,
+                                content.title,
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(color: AppPalette.cobalt),
                               ),
@@ -1297,7 +1371,7 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
                 final tileWidth = constraints.maxWidth < 360
@@ -1349,6 +1423,8 @@ class _HeroImageFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
@@ -1372,7 +1448,7 @@ class _HeroImageFrame extends StatelessWidget {
         ],
       ),
       child: AspectRatio(
-        aspectRatio: 0.88,
+        aspectRatio: 0.78,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Stack(
@@ -1390,11 +1466,7 @@ class _HeroImageFrame extends StatelessWidget {
                   ),
                 ),
               ),
-              Image.asset(
-                PortfolioContent.profileAsset,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-              ),
+              _PortfolioProfileImage(source: content.profileAsset),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
@@ -1416,6 +1488,64 @@ class _HeroImageFrame extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ProfileFallback extends StatelessWidget {
+  const _ProfileFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 96,
+        height: 96,
+        decoration: BoxDecoration(
+          gradient: AppPalette.accentGradient,
+          borderRadius: BorderRadius.circular(32),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          'AP',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PortfolioProfileImage extends StatelessWidget {
+  const _PortfolioProfileImage({required this.source});
+
+  final String source;
+
+  @override
+  Widget build(BuildContext context) {
+    final isRemote = source.startsWith('http') || source.startsWith('data:');
+    final image = isRemote
+        ? Image.network(
+            source,
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomCenter,
+            filterQuality: FilterQuality.high,
+            errorBuilder: (context, error, stackTrace) {
+              return const _ProfileFallback();
+            },
+          )
+        : Image.asset(
+            source,
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomCenter,
+            filterQuality: FilterQuality.high,
+            errorBuilder: (context, error, stackTrace) {
+              return const _ProfileFallback();
+            },
+          );
+
+    return image;
   }
 }
 
@@ -1447,11 +1577,15 @@ class _HeroSurfaceChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.white),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(color: Colors.white),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -1805,6 +1939,7 @@ class _AboutContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final content = PortfolioScope.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1829,18 +1964,12 @@ class _AboutContent extends StatelessWidget {
               spacing: 14,
               runSpacing: 14,
               children: [
-                for (
-                  int index = 0;
-                  index < PortfolioContent.focusAreas.length;
-                  index++
-                )
+                for (int index = 0; index < content.focusAreas.length; index++)
                   SizedBox(
                     width: compact ? constraints.maxWidth : 250,
                     child: RevealOnScroll(
                       delay: Duration(milliseconds: 80 * (index + 1)),
-                      child: _FocusCard(
-                        area: PortfolioContent.focusAreas[index],
-                      ),
+                      child: _FocusCard(area: content.focusAreas[index]),
                     ),
                   ),
               ],
@@ -1993,6 +2122,8 @@ class _ProjectsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -2023,20 +2154,15 @@ class _ProjectsPanel extends StatelessWidget {
                 spacing: 16,
                 runSpacing: 16,
                 children: [
-                  for (
-                    int index = 0;
-                    index < PortfolioContent.projects.length;
-                    index++
-                  )
+                  for (int index = 0; index < content.projects.length; index++)
                     SizedBox(
                       width: cardWidth,
                       child: RevealOnScroll(
                         delay: Duration(milliseconds: 70 * (index + 1)),
                         child: _ProjectCard(
-                          project: PortfolioContent.projects[index],
+                          project: content.projects[index],
                           isHovered:
-                              hoveredProjectId ==
-                              PortfolioContent.projects[index].id,
+                              hoveredProjectId == content.projects[index].id,
                         ),
                       ),
                     ),
@@ -2251,16 +2377,18 @@ class _ExperienceTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return Column(
       children: [
-        for (int index = 0; index < PortfolioContent.experience.length; index++)
+        for (int index = 0; index < content.experience.length; index++)
           Padding(
             padding: EdgeInsets.only(
-              bottom: index == PortfolioContent.experience.length - 1 ? 0 : 18,
+              bottom: index == content.experience.length - 1 ? 0 : 18,
             ),
             child: _ExperienceCard(
-              item: PortfolioContent.experience[index],
-              isLast: index == PortfolioContent.experience.length - 1,
+              item: content.experience[index],
+              isLast: index == content.experience.length - 1,
               onLaunch: onLaunch,
             ),
           ),
@@ -2402,6 +2530,7 @@ class _EducationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final content = PortfolioScope.of(context);
 
     return Container(
       padding: const EdgeInsets.all(22),
@@ -2424,12 +2553,12 @@ class _EducationCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            PortfolioContent.educationTitle,
+            content.educationTitle,
             style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 10),
           Text(
-            PortfolioContent.educationSchool,
+            content.educationSchool,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
             ),
@@ -2437,13 +2566,13 @@ class _EducationCard extends StatelessWidget {
           const SizedBox(height: 16),
           _MetricRow(
             label: 'Period',
-            value: PortfolioContent.educationPeriod,
+            value: content.educationPeriod,
             light: true,
           ),
           const SizedBox(height: 12),
           _MetricRow(
             label: 'Result',
-            value: PortfolioContent.educationResult,
+            value: content.educationResult,
             light: true,
           ),
           const SizedBox(height: 26),
@@ -2471,6 +2600,8 @@ class _SkillsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -2503,7 +2634,7 @@ class _SkillsPanel extends StatelessWidget {
                 children: [
                   for (
                     int index = 0;
-                    index < PortfolioContent.skillCategories.length;
+                    index < content.skillCategories.length;
                     index++
                   )
                     SizedBox(
@@ -2511,7 +2642,7 @@ class _SkillsPanel extends StatelessWidget {
                       child: RevealOnScroll(
                         delay: Duration(milliseconds: 90 * (index + 1)),
                         child: _SkillCard(
-                          category: PortfolioContent.skillCategories[index],
+                          category: content.skillCategories[index],
                         ),
                       ),
                     ),
@@ -2524,7 +2655,7 @@ class _SkillsPanel extends StatelessWidget {
             spacing: 16,
             runSpacing: 16,
             children: [
-              for (final achievement in PortfolioContent.achievements)
+              for (final achievement in content.achievements)
                 SizedBox(
                   width: 250,
                   child: RevealOnScroll(
@@ -2617,6 +2748,8 @@ class _ContactPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -2681,7 +2814,7 @@ class _ContactPanel extends StatelessWidget {
                 children: [
                   for (
                     int index = 0;
-                    index < PortfolioContent.contactActions.length;
+                    index < content.contactActions.length;
                     index++
                   )
                     SizedBox(
@@ -2689,10 +2822,9 @@ class _ContactPanel extends StatelessWidget {
                       child: RevealOnScroll(
                         delay: Duration(milliseconds: 70 * (index + 1)),
                         child: _ContactTile(
-                          action: PortfolioContent.contactActions[index],
-                          onTap: () => onLaunch(
-                            PortfolioContent.contactActions[index].url,
-                          ),
+                          action: content.contactActions[index],
+                          onTap: () =>
+                              onLaunch(content.contactActions[index].url),
                         ),
                       ),
                     ),
@@ -2757,11 +2889,13 @@ class _ContactActionsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = PortfolioScope.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         FilledButton.icon(
-          onPressed: () => onLaunch('mailto:${PortfolioContent.email}'),
+          onPressed: () => onLaunch('mailto:${content.email}'),
           style: FilledButton.styleFrom(
             backgroundColor: AppPalette.ink,
             foregroundColor: Colors.white,
@@ -2786,6 +2920,16 @@ class _ContactActionsBar extends StatelessWidget {
           ),
           icon: const Icon(Icons.download_rounded),
           label: const Text('Open Resume'),
+        ),
+        const SizedBox(height: 12),
+        TextButton.icon(
+          onPressed: () => Navigator.of(context).pushNamed('/contact-us'),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          ),
+          icon: const Icon(Icons.contact_mail_rounded),
+          label: const Text('Open Contact Page'),
         ),
       ],
     );

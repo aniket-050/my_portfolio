@@ -12,7 +12,7 @@ abstract final class PortfolioContent {
   static const String title = 'Software Engineer (Flutter)';
   static const String phone = '+91 87705 61223';
   static const String email = 'aniketparihar.0505@gmail.com';
-  static const String profileAsset = 'assets/images/aniket_profile.jpeg';
+  static const String profileAsset = 'assets/images/aniket_profile_cutout.png';
   static const String linkedIn =
       'https://www.linkedin.com/in/aniket-parihar-803955215/';
   static const String github = 'https://github.com/aniket-050';
