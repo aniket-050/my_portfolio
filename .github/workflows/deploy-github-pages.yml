@@ -39,7 +39,9 @@ jobs:
         run: flutter test
 
       - name: Build web
-        run: flutter build web --release --base-href /my_portfolio/
+        run: >
+          flutter build web --release --base-href /my_portfolio/
+          --dart-define=WEB3FORMS_ACCESS_KEY=${{ secrets.WEB3FORMS_ACCESS_KEY }}
 
       - name: Prepare GitHub Pages artifact
         run: |
