@@ -37,7 +37,7 @@ abstract final class FirebaseConfig {
   );
   static const contactFirestoreEnabled = bool.fromEnvironment(
     'CONTACT_FIRESTORE_ENABLED',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static bool get isConfigured {

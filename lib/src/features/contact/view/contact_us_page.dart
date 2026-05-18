@@ -86,44 +86,45 @@ ${_messageController.text.trim()}
         ),
       );
 
-      if (content.backend?.hasDirectEmailDelivery ?? false) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Message submitted successfully.'),
+        ),
+      );
+      _formKey.currentState!.reset();
+      _nameController.clear();
+      _emailController.clear();
+      _subjectController.clear();
+      _messageController.clear();
+    } on ContactSubmissionException catch (error) {
+      if (mounted) {
+        await _copyEmailDraft(to: content.email, subject: subject, body: body);
         if (!mounted) {
           return;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Message sent successfully.'),
-          ),
-        );
-        _formKey.currentState!.reset();
-        _nameController.clear();
-        _emailController.clear();
-        _subjectController.clear();
-        _messageController.clear();
-        return;
-      }
-    } on ContactSubmissionException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text(
-              _submissionErrorMessage(
-                error: error,
-                hasDirectDelivery:
-                    content.backend?.hasDirectEmailDelivery ?? false,
-              ),
-            ),
+            content: Text(_submissionErrorMessage(error: error)),
           ),
         );
       }
     } on Object catch (error) {
       if (mounted) {
+        await _copyEmailDraft(to: content.email, subject: subject, body: body);
+        if (!mounted) {
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text('Could not send message automatically: $error'),
+            content: Text(
+              'Could not submit automatically. Message copied to clipboard. $error',
+            ),
           ),
         );
       }
@@ -132,34 +133,26 @@ ${_messageController.text.trim()}
         setState(() => _submitting = false);
       }
     }
-
-    final uri = Uri(
-      scheme: 'mailto',
-      path: content.email,
-      queryParameters: {'subject': subject, 'body': body},
-    );
-
-    if (!mounted) {
-      return;
-    }
-    await _launch(context, uri.toString());
   }
 
-  String _submissionErrorMessage({
-    required ContactSubmissionException error,
-    required bool hasDirectDelivery,
-  }) {
+  Future<void> _copyEmailDraft({
+    required String to,
+    required String subject,
+    required String body,
+  }) async {
+    final fallback = 'To: $to\nSubject: $subject\n\n$body'.trimRight();
+    await Clipboard.setData(ClipboardData(text: fallback));
+  }
+
+  String _submissionErrorMessage({required ContactSubmissionException error}) {
     final permissionDenied = error.toString().toLowerCase().contains(
       'permission-denied',
     );
 
-    if (hasDirectDelivery) {
-      return 'Auto submit failed. Opening email app as fallback.';
-    }
     if (permissionDenied) {
-      return 'Inbox delivery channel is not configured yet. Opening email app as fallback.';
+      return 'Database rules are not configured yet. Message copied to clipboard.';
     }
-    return 'Could not save enquiry. Opening email app as fallback.';
+    return 'Could not submit automatically. Message copied to clipboard.';
   }
 
   @override

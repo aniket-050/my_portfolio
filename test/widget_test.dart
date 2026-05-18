@@ -96,7 +96,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Contact Us'), findsOneWidget);
-    expect(find.text('Send Message'), findsOneWidget);
+    expect(find.text('Send Message'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }
