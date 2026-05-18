@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_palette.dart';
@@ -31,15 +32,27 @@ class _ContactUsPageState extends State<ContactUsPage> {
 
   Future<void> _launch(BuildContext context, String url) async {
     final uri = Uri.parse(url);
+    final messenger = ScaffoldMessenger.of(context);
     final launched = await launchUrl(
       uri,
       webOnlyWindowName: uri.scheme.startsWith('http') ? '_blank' : null,
     );
     if (!launched && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (uri.scheme == 'mailto') {
+        final subject = uri.queryParameters['subject'] ?? '';
+        final body = uri.queryParameters['body'] ?? '';
+        final fallback = 'To: ${uri.path}\nSubject: $subject\n\n$body'
+            .trimRight();
+        await Clipboard.setData(ClipboardData(text: fallback));
+      }
+      messenger.showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: Text('Unable to open ${uri.toString()}'),
+          content: Text(
+            uri.scheme == 'mailto'
+                ? 'Could not open email app. Message copied to clipboard.'
+                : 'Unable to open ${uri.toString()}',
+          ),
         ),
       );
     }
@@ -73,7 +86,7 @@ ${_messageController.text.trim()}
         ),
       );
 
-      if (content.backend?.hasEmailEndpoint ?? false) {
+      if (content.backend?.hasDirectEmailDelivery ?? false) {
         if (!mounted) {
           return;
         }
@@ -90,12 +103,27 @@ ${_messageController.text.trim()}
         _messageController.clear();
         return;
       }
+    } on ContactSubmissionException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              _submissionErrorMessage(
+                error: error,
+                hasDirectDelivery:
+                    content.backend?.hasDirectEmailDelivery ?? false,
+              ),
+            ),
+          ),
+        );
+      }
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text('Could not save enquiry: $error'),
+            content: Text('Could not send message automatically: $error'),
           ),
         );
       }
@@ -115,6 +143,23 @@ ${_messageController.text.trim()}
       return;
     }
     await _launch(context, uri.toString());
+  }
+
+  String _submissionErrorMessage({
+    required ContactSubmissionException error,
+    required bool hasDirectDelivery,
+  }) {
+    final permissionDenied = error.toString().toLowerCase().contains(
+      'permission-denied',
+    );
+
+    if (hasDirectDelivery) {
+      return 'Auto submit failed. Opening email app as fallback.';
+    }
+    if (permissionDenied) {
+      return 'Inbox delivery channel is not configured yet. Opening email app as fallback.';
+    }
+    return 'Could not save enquiry. Opening email app as fallback.';
   }
 
   @override
@@ -401,7 +446,7 @@ class _ContactFormCard extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.send_rounded),
-              label: const Text('Send via Email'),
+              label: const Text('Send Message'),
             ),
           ],
         ),

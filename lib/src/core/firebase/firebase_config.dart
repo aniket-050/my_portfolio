@@ -32,6 +32,13 @@ abstract final class FirebaseConfig {
   static const contactEmailEndpoint = String.fromEnvironment(
     'CONTACT_EMAIL_ENDPOINT',
   );
+  static const web3FormsAccessKey = String.fromEnvironment(
+    'WEB3FORMS_ACCESS_KEY',
+  );
+  static const contactFirestoreEnabled = bool.fromEnvironment(
+    'CONTACT_FIRESTORE_ENABLED',
+    defaultValue: false,
+  );
 
   static bool get isConfigured {
     return apiKey.isNotEmpty &&

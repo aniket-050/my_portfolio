@@ -34,6 +34,33 @@ class ContactInquiry {
   }
 }
 
+class ContactSubmissionException implements Exception {
+  const ContactSubmissionException({
+    this.firestoreError,
+    this.emailEndpointError,
+  });
+
+  final Object? firestoreError;
+  final Object? emailEndpointError;
+
+  bool get hasFirestoreError => firestoreError != null;
+  bool get hasEmailEndpointError => emailEndpointError != null;
+
+  @override
+  String toString() {
+    final messages = <String>[];
+    if (firestoreError != null) {
+      messages.add('Firestore: $firestoreError');
+    }
+    if (emailEndpointError != null) {
+      messages.add('Email endpoint: $emailEndpointError');
+    }
+    return messages.isEmpty
+        ? 'Contact submission failed.'
+        : 'Contact submission failed (${messages.join(' | ')}).';
+  }
+}
+
 class PortfolioBackend {
   PortfolioBackend._();
 
@@ -42,6 +69,10 @@ class PortfolioBackend {
   bool get isConfigured => Firebase.apps.isNotEmpty;
 
   bool get hasEmailEndpoint => FirebaseConfig.contactEmailEndpoint.isNotEmpty;
+  bool get hasWeb3FormsAccessKey =>
+      FirebaseConfig.web3FormsAccessKey.isNotEmpty;
+  bool get isContactFirestoreEnabled => FirebaseConfig.contactFirestoreEnabled;
+  bool get hasDirectEmailDelivery => hasEmailEndpoint || hasWeb3FormsAccessKey;
 
   Stream<User?> get authStateChanges {
     if (!isConfigured) {
@@ -102,11 +133,18 @@ class PortfolioBackend {
       return null;
     }
 
-    final snapshot = await FirebaseFirestore.instance
-        .collection('siteContent')
-        .doc('main')
-        .get();
-    return snapshot.data();
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('siteContent')
+          .doc('main')
+          .get();
+      return snapshot.data();
+    } on FirebaseException catch (error) {
+      if (error.code == 'permission-denied') {
+        return null;
+      }
+      rethrow;
+    }
   }
 
   Future<void> savePortfolioContent(Map<String, Object?> content) async {
@@ -139,22 +177,83 @@ class PortfolioBackend {
   }
 
   Future<void> submitInquiry(ContactInquiry inquiry) async {
-    if (isConfigured) {
-      await FirebaseFirestore.instance
-          .collection('contactInquiries')
-          .add(inquiry.toJson());
-    }
+    Object? firestoreError;
+    Object? emailEndpointError;
+    Object? web3FormsError;
+    var delivered = false;
 
     if (hasEmailEndpoint) {
-      await http.post(
-        Uri.parse(FirebaseConfig.contactEmailEndpoint),
-        headers: const {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': inquiry.name,
-          'email': inquiry.email,
-          'subject': inquiry.subject,
-          'message': inquiry.message,
-        }),
+      try {
+        final response = await http.post(
+          Uri.parse(FirebaseConfig.contactEmailEndpoint),
+          headers: const {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode({
+            'name': inquiry.name,
+            'email': inquiry.email,
+            'subject': inquiry.subject,
+            'message': inquiry.message,
+          }),
+        );
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw StateError(
+            'Email endpoint returned HTTP ${response.statusCode}.',
+          );
+        }
+        delivered = true;
+      } on Object catch (error) {
+        emailEndpointError = error;
+      }
+    }
+
+    if (hasWeb3FormsAccessKey) {
+      try {
+        final response = await http.post(
+          Uri.parse('https://api.web3forms.com/submit'),
+          headers: const {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode({
+            'access_key': FirebaseConfig.web3FormsAccessKey,
+            'name': inquiry.name,
+            'email': inquiry.email,
+            'subject': inquiry.subject,
+            'message': inquiry.message,
+          }),
+        );
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw StateError('Web3Forms returned HTTP ${response.statusCode}.');
+        }
+        delivered = true;
+      } on Object catch (error) {
+        web3FormsError = error;
+      }
+    }
+
+    if (isConfigured && isContactFirestoreEnabled) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('contactInquiries')
+            .add(inquiry.toJson());
+      } on Object catch (error) {
+        firestoreError = error;
+      }
+    }
+
+    if (delivered) {
+      return;
+    }
+
+    if (firestoreError != null ||
+        emailEndpointError != null ||
+        web3FormsError != null) {
+      throw ContactSubmissionException(
+        firestoreError: firestoreError,
+        emailEndpointError:
+            emailEndpointError ?? web3FormsError ?? firestoreError,
       );
     }
   }

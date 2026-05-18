@@ -56,19 +56,30 @@ flutter build web --release \
 
 ## 4. Contact Email
 
-The contact form always saves enquiries to Firestore when Firebase is
-configured.
+For direct inbox delivery, configure at least one option below.
 
-For email notifications, provide a secure endpoint:
+Option A: Provide a secure backend endpoint:
 
 ```sh
 --dart-define=CONTACT_EMAIL_ENDPOINT=https://your-worker-or-form-endpoint.example.com
 ```
 
-Recommended free options:
+Option B: Use Web3Forms (quickest for static websites):
+
+```sh
+--dart-define=WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
+```
+
+Optional: Save inquiries to Firestore as a secondary store (disabled by default):
+
+```sh
+--dart-define=CONTACT_FIRESTORE_ENABLED=true
+```
+
+Recommended options:
 
 - Cloudflare Workers free tier with Resend or another email provider.
-- A trusted form endpoint such as Formspree/Web3Forms.
+- Web3Forms access key flow.
 
 Do not put private email API keys in Flutter code. Use a server-side endpoint.
 

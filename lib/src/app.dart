@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,7 +25,11 @@ class _PortfolioAppState extends State<PortfolioApp> {
   void initState() {
     super.initState();
     _store = EditablePortfolioStore(backend: PortfolioBackend.instance);
-    _store.loadRemote();
+    unawaited(
+      _store.loadRemote().catchError((Object error, StackTrace stackTrace) {
+        debugPrint('Remote portfolio load failed: $error');
+      }),
+    );
   }
 
   @override
