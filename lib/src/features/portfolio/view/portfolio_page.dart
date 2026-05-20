@@ -199,6 +199,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                           section: PortfolioSection.home,
                                           onVisible: _activateSection,
                                           child: _HomePanel(
+                                            viewportHeight:
+                                                constraints.maxHeight,
                                             onProjectsTap: () {
                                               context.read<PortfolioBloc>().add(
                                                 const PortfolioSectionRequested(
@@ -649,12 +651,14 @@ class _ViewportAwareSection extends StatelessWidget {
 
 class _HomePanel extends StatelessWidget {
   const _HomePanel({
+    required this.viewportHeight,
     required this.onProjectsTap,
     required this.onContactTap,
     required this.onResumeTap,
     required this.onLaunch,
   });
 
+  final double viewportHeight;
   final VoidCallback onProjectsTap;
   final VoidCallback onContactTap;
   final VoidCallback onResumeTap;
@@ -665,61 +669,67 @@ class _HomePanel extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final stacked = constraints.maxWidth < 1160;
+        final targetHeight = stacked
+            ? null
+            : math.max(620.0, viewportHeight - 132.0);
 
-        return Container(
-          padding: EdgeInsets.all(stacked ? 16 : 22),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(color: AppPalette.line),
-            boxShadow: [
-              BoxShadow(
-                color: AppPalette.ink.withValues(alpha: 0.05),
-                blurRadius: 40,
-                offset: const Offset(0, 18),
-              ),
-            ],
-          ),
-          child: stacked
-              ? Column(
-                  children: [
-                    RevealOnScroll(
-                      child: _HeroCanvas(
-                        onProjectsTap: onProjectsTap,
-                        onContactTap: onContactTap,
-                        onResumeTap: onResumeTap,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    RevealOnScroll(
-                      delay: const Duration(milliseconds: 120),
-                      child: _SidebarRail(onLaunch: onLaunch, dense: true),
-                    ),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: RevealOnScroll(
-                        child: _SidebarRail(onLaunch: onLaunch),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      flex: 9,
-                      child: RevealOnScroll(
-                        delay: const Duration(milliseconds: 120),
+        return ConstrainedBox(
+          constraints: BoxConstraints(minHeight: targetHeight ?? 0),
+          child: Container(
+            padding: EdgeInsets.all(stacked ? 16 : 18),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(color: AppPalette.line),
+              boxShadow: [
+                BoxShadow(
+                  color: AppPalette.ink.withValues(alpha: 0.05),
+                  blurRadius: 40,
+                  offset: const Offset(0, 18),
+                ),
+              ],
+            ),
+            child: stacked
+                ? Column(
+                    children: [
+                      RevealOnScroll(
                         child: _HeroCanvas(
                           onProjectsTap: onProjectsTap,
                           onContactTap: onContactTap,
                           onResumeTap: onResumeTap,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 18),
+                      RevealOnScroll(
+                        delay: const Duration(milliseconds: 120),
+                        child: _SidebarRail(onLaunch: onLaunch, dense: true),
+                      ),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: RevealOnScroll(
+                          child: _SidebarRail(onLaunch: onLaunch),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        flex: 9,
+                        child: RevealOnScroll(
+                          delay: const Duration(milliseconds: 120),
+                          child: _HeroCanvas(
+                            onProjectsTap: onProjectsTap,
+                            onContactTap: onContactTap,
+                            onResumeTap: onResumeTap,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         );
       },
     );
@@ -736,6 +746,7 @@ class _SidebarRail extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final content = PortfolioScope.of(context);
+    final showHighlights = !dense && MediaQuery.sizeOf(context).height >= 880;
 
     return Container(
       padding: EdgeInsets.all(dense ? 18 : 22),
@@ -831,7 +842,7 @@ class _SidebarRail extends StatelessWidget {
             ],
           ),
           SizedBox(height: dense ? 20 : 26),
-          if (!dense)
+          if (showHighlights)
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -954,9 +965,10 @@ class _HeroCanvas extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final stacked = constraints.maxWidth < 760;
+        final veryCompact = constraints.maxWidth < 420;
 
         return Container(
-          padding: EdgeInsets.all(stacked ? 20 : 30),
+          padding: EdgeInsets.all(veryCompact ? 14 : (stacked ? 18 : 24)),
           decoration: BoxDecoration(
             gradient: AppPalette.heroGradient,
             borderRadius: BorderRadius.circular(34),
@@ -985,13 +997,14 @@ class _HeroCanvas extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Center(child: _HeroVisualPanel()),
+                    const SizedBox(height: 22),
                     _HeroCopyBlock(
+                      compact: true,
                       onProjectsTap: onProjectsTap,
                       onContactTap: onContactTap,
                       onResumeTap: onResumeTap,
                     ),
-                    const SizedBox(height: 24),
-                    const Center(child: _HeroVisualPanel()),
                   ],
                 )
               else
@@ -1001,6 +1014,7 @@ class _HeroCanvas extends StatelessWidget {
                     Expanded(
                       flex: 7,
                       child: _HeroCopyBlock(
+                        compact: false,
                         onProjectsTap: onProjectsTap,
                         onContactTap: onContactTap,
                         onResumeTap: onResumeTap,
@@ -1026,11 +1040,13 @@ class _HeroCanvas extends StatelessWidget {
 
 class _HeroCopyBlock extends StatelessWidget {
   const _HeroCopyBlock({
+    required this.compact,
     required this.onProjectsTap,
     required this.onContactTap,
     required this.onResumeTap,
   });
 
+  final bool compact;
   final VoidCallback onProjectsTap;
   final VoidCallback onContactTap;
   final VoidCallback onResumeTap;
@@ -1043,28 +1059,32 @@ class _HeroCopyBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _GlassPill(
-              icon: Icons.circle,
-              text: 'Production Flutter',
-              iconColor: AppPalette.amber,
-            ),
-            _GlassPill(
-              icon: Icons.location_on_rounded,
-              text: 'Maps & GIS',
-              iconColor: AppPalette.sky,
-            ),
-          ],
-        ),
-        const SizedBox(height: 28),
+        if (!compact) ...[
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _GlassPill(
+                icon: Icons.circle,
+                text: 'Production Flutter',
+                iconColor: AppPalette.amber,
+              ),
+              _GlassPill(
+                icon: Icons.location_on_rounded,
+                text: 'Maps & GIS',
+                iconColor: AppPalette.sky,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
         LayoutBuilder(
           builder: (context, constraints) {
-            final compactHeadline = constraints.maxWidth < 480;
+            final compactHeadline = compact || constraints.maxWidth < 480;
             return Text(
               content.headline,
+              maxLines: compact ? 4 : null,
+              overflow: compact ? TextOverflow.ellipsis : null,
               style:
                   (compactHeadline
                           ? theme.textTheme.headlineLarge
@@ -1078,17 +1098,19 @@ class _HeroCopyBlock extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 18),
+        SizedBox(height: compact ? 12 : 16),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
             content.summary,
+            maxLines: compact ? 4 : null,
+            overflow: compact ? TextOverflow.ellipsis : null,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
             ),
           ),
         ),
-        const SizedBox(height: 26),
+        SizedBox(height: compact ? 18 : 22),
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -1139,30 +1161,13 @@ class _HeroCopyBlock extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 30),
+        SizedBox(height: compact ? 18 : 24),
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: content.heroTags
+          children: (compact ? content.heroTags.take(3) : content.heroTags)
               .map((tag) => _TagChip(label: tag))
               .toList(),
-        ),
-        const SizedBox(height: 32),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 600;
-            return Wrap(
-              spacing: 14,
-              runSpacing: 14,
-              children: [
-                for (final stat in content.stats)
-                  SizedBox(
-                    width: compact ? constraints.maxWidth : 210,
-                    child: _HeroStatCard(stat: stat),
-                  ),
-              ],
-            );
-          },
         ),
       ],
     );
@@ -1186,8 +1191,14 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 8),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncAnimationMode();
   }
 
   @override
@@ -1206,212 +1217,236 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
     });
   }
 
+  void _syncAnimationMode() {
+    final shouldAnimate =
+        MediaQuery.sizeOf(context).width >= 760 &&
+        !MediaQuery.disableAnimationsOf(context);
+    if (shouldAnimate && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!shouldAnimate && _controller.isAnimating) {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = PortfolioScope.of(context);
+    final compact = MediaQuery.sizeOf(context).width < 760;
 
-    return MouseRegion(
-      onEnter: (_) => _setHovered(true),
-      onExit: (_) => _setHovered(false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()..translate(0.0, _isHovered ? -10.0 : 0.0),
-        constraints: const BoxConstraints(maxWidth: 400),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: _isHovered ? 0.14 : 0.1),
-          borderRadius: BorderRadius.circular(34),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-          boxShadow: [
-            BoxShadow(
-              color: AppPalette.ink.withValues(alpha: _isHovered ? 0.24 : 0.16),
-              blurRadius: _isHovered ? 34 : 24,
-              offset: const Offset(0, 18),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: const [
-                _HeroSurfaceChip(
-                  icon: Icons.verified_rounded,
-                  label: 'Open to impactful Flutter roles',
+    return RepaintBoundary(
+      child: MouseRegion(
+        onEnter: (_) => _setHovered(true),
+        onExit: (_) => _setHovered(false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.identity()
+            ..translate(0.0, !compact && _isHovered ? -8.0 : 0.0),
+          constraints: BoxConstraints(maxWidth: compact ? 520 : 380),
+          padding: EdgeInsets.all(compact ? 12 : 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: _isHovered ? 0.14 : 0.1),
+            borderRadius: BorderRadius.circular(34),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+            boxShadow: [
+              BoxShadow(
+                color: AppPalette.ink.withValues(
+                  alpha: _isHovered ? 0.22 : 0.12,
                 ),
-                _HeroSurfaceChip(
-                  icon: Icons.auto_graph_rounded,
-                  label: 'BLoC + GIS',
-                  compact: true,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                blurRadius: _isHovered ? 28 : 20,
+                offset: const Offset(0, 16),
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: 6,
-                    top: 34,
-                    child: Container(
-                      width: 84,
-                      height: 84,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppPalette.sky.withValues(alpha: 0.28),
-                      ),
-                    ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: const [
+                  _HeroSurfaceChip(
+                    icon: Icons.verified_rounded,
+                    label: 'Open to impactful Flutter roles',
                   ),
-                  Positioned(
-                    right: 14,
-                    bottom: 120,
-                    child: Container(
-                      width: 62,
-                      height: 62,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppPalette.coral.withValues(alpha: 0.26),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: -28,
-                    right: -14,
-                    child: IgnorePointer(
-                      child: Opacity(
-                        opacity: 0.52,
-                        child: Transform.scale(
-                          scale: 0.62,
-                          child: const _OrbitalShape(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AnimatedBuilder(
-                          animation: _controller,
-                          builder: (context, child) {
-                            final hoverOffset = _isHovered ? -4.0 : 0.0;
-                            final floatOffset =
-                                math.sin(_controller.value * math.pi * 2) * 8;
-
-                            return Transform.translate(
-                              offset: Offset(0, hoverOffset + floatOffset),
-                              child: child,
-                            );
-                          },
-                          child: const _HeroImageFrame(),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: AppPalette.line),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                content.name,
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w800),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                content.title,
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(color: AppPalette.cobalt),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'UI polish, structured state management and location-focused product delivery.',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: AppPalette.ink.withValues(
-                                        alpha: 0.72,
-                                      ),
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Positioned(
-                    left: -6,
-                    top: 12,
-                    child: _HeroMetricPill(value: '08+', label: 'Apps shipped'),
-                  ),
-                  const Positioned(
-                    right: -6,
-                    bottom: 106,
-                    child: _HeroMetricPill(
-                      value: '85%',
-                      label: 'Hands-on ownership',
-                    ),
+                  _HeroSurfaceChip(
+                    icon: Icons.auto_graph_rounded,
+                    label: 'BLoC + GIS',
+                    compact: true,
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final tileWidth = constraints.maxWidth < 360
-                    ? constraints.maxWidth
-                    : (constraints.maxWidth - 12) / 2;
-
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+              SizedBox(height: compact ? 12 : 14),
+              Container(
+                padding: EdgeInsets.all(compact ? 12 : 14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    SizedBox(
-                      width: tileWidth,
-                      child: const _HeroDetailTile(
-                        icon: Icons.work_outline_rounded,
-                        title: 'Current role',
-                        subtitle: 'Mobile Application Developer',
+                    Positioned(
+                      left: 6,
+                      top: 34,
+                      child: Container(
+                        width: 84,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppPalette.sky.withValues(alpha: 0.28),
+                        ),
                       ),
                     ),
-                    SizedBox(
-                      width: tileWidth,
-                      child: const _HeroDetailTile(
-                        icon: Icons.location_on_outlined,
-                        title: 'Base',
-                        subtitle: 'Raipur, India',
+                    Positioned(
+                      right: 14,
+                      bottom: compact ? 210 : 196,
+                      child: Container(
+                        width: 62,
+                        height: 62,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppPalette.coral.withValues(alpha: 0.26),
+                        ),
                       ),
                     ),
-                    SizedBox(
-                      width: constraints.maxWidth,
-                      child: const _HeroDetailTile(
-                        icon: Icons.route_rounded,
-                        title: 'Core strengths',
-                        subtitle:
-                            'Flutter architecture, Google Maps, GIS, geofencing and robust product UX.',
+                    if (!compact)
+                      Positioned(
+                        top: -28,
+                        right: -14,
+                        child: IgnorePointer(
+                          child: Opacity(
+                            opacity: 0.52,
+                            child: Transform.scale(
+                              scale: 0.62,
+                              child: const _OrbitalShape(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    Padding(
+                      padding: EdgeInsets.only(top: compact ? 8 : 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, child) {
+                              final hoverOffset = _isHovered ? -3.0 : 0.0;
+                              final floatOffset = compact
+                                  ? 0.0
+                                  : math.sin(_controller.value * math.pi * 2) *
+                                        6;
+
+                              return Transform.translate(
+                                offset: Offset(0, hoverOffset + floatOffset),
+                                child: child,
+                              );
+                            },
+                            child: const _HeroImageFrame(),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: const [
+                              _HeroMetricPill(
+                                value: '08+',
+                                label: 'Apps shipped',
+                              ),
+                              _HeroMetricPill(
+                                value: '85%',
+                                label: 'Hands-on ownership',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(compact ? 14 : 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: AppPalette.line),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  content.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  content.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(color: AppPalette.cobalt),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'UI polish, structured state management and location-focused product delivery.',
+                                  maxLines: compact ? 3 : null,
+                                  overflow: compact
+                                      ? TextOverflow.ellipsis
+                                      : null,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: AppPalette.ink.withValues(
+                                          alpha: 0.72,
+                                        ),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                );
-              },
-            ),
-          ],
+                ),
+              ),
+              SizedBox(height: compact ? 12 : 14),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final tileWidth = constraints.maxWidth < 360
+                      ? constraints.maxWidth
+                      : (constraints.maxWidth - 12) / 2;
+
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      SizedBox(
+                        width: tileWidth,
+                        child: const _HeroDetailTile(
+                          icon: Icons.work_outline_rounded,
+                          title: 'Current role',
+                          subtitle: 'Mobile Application Developer',
+                        ),
+                      ),
+                      SizedBox(
+                        width: tileWidth,
+                        child: const _HeroDetailTile(
+                          icon: Icons.location_on_outlined,
+                          title: 'Base',
+                          subtitle: 'Raipur, India',
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1424,6 +1459,7 @@ class _HeroImageFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = PortfolioScope.of(context);
+    final compact = MediaQuery.sizeOf(context).width < 760;
 
     return Container(
       width: double.infinity,
@@ -1448,7 +1484,7 @@ class _HeroImageFrame extends StatelessWidget {
         ],
       ),
       child: AspectRatio(
-        aspectRatio: 0.78,
+        aspectRatio: compact ? 0.78 : 1.05,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Stack(
@@ -1530,7 +1566,7 @@ class _PortfolioProfileImage extends StatelessWidget {
             source,
             fit: BoxFit.contain,
             alignment: Alignment.bottomCenter,
-            filterQuality: FilterQuality.high,
+            filterQuality: FilterQuality.medium,
             errorBuilder: (context, error, stackTrace) {
               return const _ProfileFallback();
             },
@@ -1539,7 +1575,7 @@ class _PortfolioProfileImage extends StatelessWidget {
             source,
             fit: BoxFit.contain,
             alignment: Alignment.bottomCenter,
-            filterQuality: FilterQuality.high,
+            filterQuality: FilterQuality.medium,
             errorBuilder: (context, error, stackTrace) {
               return const _ProfileFallback();
             },
@@ -1835,50 +1871,6 @@ class _TagChip extends StatelessWidget {
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
           color: Colors.white.withValues(alpha: 0.86),
         ),
-      ),
-    );
-  }
-}
-
-class _HeroStatCard extends StatelessWidget {
-  const _HeroStatCard({required this.stat});
-
-  final PortfolioStat stat;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            stat.value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            stat.label,
-            style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            stat.detail,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.72),
-            ),
-          ),
-        ],
       ),
     );
   }
