@@ -445,17 +445,21 @@ class _PortfolioHeader extends StatelessWidget {
                   label: const Text('Resume'),
                 ),
               ] else
-                IconButton(
-                  onPressed: onMenuToggle,
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppPalette.surface,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: onMenuToggle,
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppPalette.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      fixedSize: const Size(52, 52),
                     ),
-                  ),
-                  icon: Icon(
-                    isMenuOpen ? Icons.close_rounded : Icons.menu_rounded,
-                    color: AppPalette.ink,
+                    icon: Icon(
+                      isMenuOpen ? Icons.close_rounded : Icons.menu_rounded,
+                      color: AppPalette.ink,
+                    ),
                   ),
                 ),
             ],
@@ -1233,6 +1237,7 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
   Widget build(BuildContext context) {
     final content = PortfolioScope.of(context);
     final compact = MediaQuery.sizeOf(context).width < 760;
+    final veryCompact = MediaQuery.sizeOf(context).width < 420;
 
     return RepaintBoundary(
       child: MouseRegion(
@@ -1349,22 +1354,7 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                             },
                             child: const _HeroImageFrame(),
                           ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: const [
-                              _HeroMetricPill(
-                                value: '08+',
-                                label: 'Apps shipped',
-                              ),
-                              _HeroMetricPill(
-                                value: '85%',
-                                label: 'Hands-on ownership',
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: veryCompact ? 66 : 58),
                           Container(
                             width: double.infinity,
                             padding: EdgeInsets.all(compact ? 14 : 16),
@@ -1485,42 +1475,60 @@ class _HeroImageFrame extends StatelessWidget {
       ),
       child: AspectRatio(
         aspectRatio: compact ? 0.78 : 1.05,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppPalette.sky.withValues(alpha: 0.44),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-              _PortfolioProfileImage(source: content.profileAsset),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 92,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        AppPalette.ink.withValues(alpha: 0.22),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppPalette.sky.withValues(alpha: 0.44),
+                          Colors.white,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
-                ),
+                  _PortfolioProfileImage(source: content.profileAsset),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      height: compact ? 72 : 82,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            AppPalette.ink.withValues(alpha: 0.2),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              left: compact ? -4 : -6,
+              bottom: compact ? -36 : -34,
+              child: const _HeroMetricPill(value: '08+', label: 'Apps shipped'),
+            ),
+            Positioned(
+              right: compact ? -4 : -6,
+              bottom: compact ? -40 : -38,
+              child: const _HeroMetricPill(
+                value: '85%',
+                label: 'Hands-on ownership',
+              ),
+            ),
+          ],
         ),
       ),
     );
