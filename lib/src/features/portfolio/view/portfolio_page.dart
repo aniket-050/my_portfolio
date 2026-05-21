@@ -421,11 +421,41 @@ class _PortfolioHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Flexible(child: _BrandLockup(compact: compactBrand)),
-              const Spacer(),
-              if (!isMobile) ...[
+          if (isMobile)
+            SizedBox(
+              width: double.infinity,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _BrandLockup(compact: compactBrand),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      onPressed: onMenuToggle,
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppPalette.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        fixedSize: const Size(52, 52),
+                      ),
+                      icon: Icon(
+                        isMenuOpen ? Icons.close_rounded : Icons.menu_rounded,
+                        color: AppPalette.ink,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Row(
+              children: [
+                Flexible(child: _BrandLockup(compact: compactBrand)),
+                const Spacer(),
                 Wrap(spacing: 6, children: navItems),
                 const SizedBox(width: 14),
                 FilledButton.icon(
@@ -444,26 +474,8 @@ class _PortfolioHeader extends StatelessWidget {
                   icon: const Icon(Icons.download_rounded, size: 18),
                   label: const Text('Resume'),
                 ),
-              ] else
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    onPressed: onMenuToggle,
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppPalette.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      fixedSize: const Size(52, 52),
-                    ),
-                    icon: Icon(
-                      isMenuOpen ? Icons.close_rounded : Icons.menu_rounded,
-                      color: AppPalette.ink,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ],
+            ),
           if (isMobile && isMenuOpen) ...[
             const SizedBox(height: 16),
             Column(
