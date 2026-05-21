@@ -1354,51 +1354,30 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                             },
                             child: const _HeroImageFrame(),
                           ),
-                          SizedBox(height: veryCompact ? 66 : 58),
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(compact ? 14 : 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: AppPalette.line),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  content.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w800),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  content.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(color: AppPalette.cobalt),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'UI polish, structured state management and location-focused product delivery.',
-                                  maxLines: compact ? 3 : null,
-                                  overflow: compact
-                                      ? TextOverflow.ellipsis
-                                      : null,
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color: AppPalette.ink.withValues(
-                                          alpha: 0.72,
-                                        ),
-                                      ),
-                                ),
-                              ],
-                            ),
+                          const SizedBox(height: 16),
+                          _HeroNameCard(
+                            compact: compact,
+                            topInset: veryCompact ? 62 : 56,
+                            name: content.name,
+                            title: content.title,
                           ),
                         ],
+                      ),
+                    ),
+                    const Positioned(
+                      left: -6,
+                      top: 12,
+                      child: _HeroMetricPill(
+                        value: '08+',
+                        label: 'Apps shipped',
+                      ),
+                    ),
+                    Positioned(
+                      right: -6,
+                      bottom: compact ? 106 : 96,
+                      child: const _HeroMetricPill(
+                        value: '85%',
+                        label: 'Hands-on ownership',
                       ),
                     ),
                   ],
@@ -1475,61 +1454,101 @@ class _HeroImageFrame extends StatelessWidget {
       ),
       child: AspectRatio(
         aspectRatio: compact ? 0.78 : 1.05,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppPalette.sky.withValues(alpha: 0.44),
-                          Colors.white,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppPalette.sky.withValues(alpha: 0.44),
+                      Colors.white,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+              _PortfolioProfileImage(source: content.profileAsset),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: compact ? 72 : 82,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        AppPalette.ink.withValues(alpha: 0.2),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                  _PortfolioProfileImage(source: content.profileAsset),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      height: compact ? 72 : 82,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            AppPalette.ink.withValues(alpha: 0.2),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            Positioned(
-              left: compact ? -4 : -6,
-              bottom: compact ? -36 : -34,
-              child: const _HeroMetricPill(value: '08+', label: 'Apps shipped'),
-            ),
-            Positioned(
-              right: compact ? -4 : -6,
-              bottom: compact ? -40 : -38,
-              child: const _HeroMetricPill(
-                value: '85%',
-                label: 'Hands-on ownership',
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _HeroNameCard extends StatelessWidget {
+  const _HeroNameCard({
+    required this.compact,
+    required this.topInset,
+    required this.name,
+    required this.title,
+  });
+
+  final bool compact;
+  final double topInset;
+  final String name;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(16, topInset, 16, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppPalette.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: AppPalette.cobalt),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'UI polish, structured state management and location-focused product delivery.',
+            maxLines: compact ? 3 : null,
+            overflow: compact ? TextOverflow.ellipsis : null,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppPalette.ink.withValues(alpha: 0.72),
+            ),
+          ),
+        ],
       ),
     );
   }
