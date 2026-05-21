@@ -1248,7 +1248,12 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
   @override
   Widget build(BuildContext context) {
     final content = PortfolioScope.of(context);
-    final compact = MediaQuery.sizeOf(context).width < 760;
+    final size = MediaQuery.sizeOf(context);
+    final compact = size.width < 760;
+    final dense = size.width < 420 || size.height < 760;
+    final chipLabel = dense
+        ? 'Open to Flutter roles'
+        : 'Open to impactful Flutter roles';
 
     return RepaintBoundary(
       child: MouseRegion(
@@ -1260,7 +1265,13 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
           transform: Matrix4.identity()
             ..translate(0.0, !compact && _isHovered ? -8.0 : 0.0),
           constraints: BoxConstraints(maxWidth: compact ? 520 : 380),
-          padding: EdgeInsets.all(compact ? 12 : 14),
+          padding: EdgeInsets.all(
+            dense
+                ? 10
+                : compact
+                ? 12
+                : 14,
+          ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: _isHovered ? 0.14 : 0.1),
             borderRadius: BorderRadius.circular(34),
@@ -1279,23 +1290,35 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: const [
+                spacing: dense ? 8 : 10,
+                runSpacing: dense ? 8 : 10,
+                children: [
                   _HeroSurfaceChip(
                     icon: Icons.verified_rounded,
-                    label: 'Open to impactful Flutter roles',
+                    label: chipLabel,
                   ),
-                  _HeroSurfaceChip(
+                  const _HeroSurfaceChip(
                     icon: Icons.auto_graph_rounded,
                     label: 'BLoC + GIS',
                     compact: true,
                   ),
                 ],
               ),
-              SizedBox(height: compact ? 12 : 14),
+              SizedBox(
+                height: dense
+                    ? 8
+                    : compact
+                    ? 12
+                    : 14,
+              ),
               Container(
-                padding: EdgeInsets.all(compact ? 12 : 14),
+                padding: EdgeInsets.all(
+                  dense
+                      ? 9
+                      : compact
+                      ? 12
+                      : 14,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(30),
@@ -1310,8 +1333,8 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                       left: 6,
                       top: 34,
                       child: Container(
-                        width: 84,
-                        height: 84,
+                        width: dense ? 60 : 84,
+                        height: dense ? 60 : 84,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppPalette.sky.withValues(alpha: 0.28),
@@ -1320,10 +1343,14 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                     ),
                     Positioned(
                       right: 14,
-                      bottom: compact ? 210 : 196,
+                      bottom: dense
+                          ? 150
+                          : compact
+                          ? 190
+                          : 196,
                       child: Container(
-                        width: 62,
-                        height: 62,
+                        width: dense ? 48 : 62,
+                        height: dense ? 48 : 62,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppPalette.coral.withValues(alpha: 0.26),
@@ -1345,7 +1372,13 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                         ),
                       ),
                     Padding(
-                      padding: EdgeInsets.only(top: compact ? 8 : 12),
+                      padding: EdgeInsets.only(
+                        top: dense
+                            ? 4
+                            : compact
+                            ? 8
+                            : 12,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1365,19 +1398,26 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                             },
                             child: const _HeroImageFrame(),
                           ),
-                          SizedBox(height: compact ? 70 : 64),
+                          SizedBox(
+                            height: dense
+                                ? 44
+                                : compact
+                                ? 58
+                                : 64,
+                          ),
                           _HeroNameCard(
                             compact: compact,
+                            dense: dense,
                             name: content.name,
                             title: content.title,
                           ),
                         ],
                       ),
                     ),
-                    const Positioned(
-                      left: -6,
-                      top: 12,
-                      child: _HeroMetricPill(
+                    Positioned(
+                      left: dense ? -2 : -6,
+                      top: dense ? 8 : 12,
+                      child: const _HeroMetricPill(
                         value: '08+',
                         label: 'Apps shipped',
                       ),
@@ -1385,37 +1425,39 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                   ],
                 ),
               ),
-              SizedBox(height: compact ? 12 : 14),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final tileWidth = constraints.maxWidth < 360
-                      ? constraints.maxWidth
-                      : (constraints.maxWidth - 12) / 2;
+              if (!compact) ...[
+                const SizedBox(height: 14),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final tileWidth = constraints.maxWidth < 360
+                        ? constraints.maxWidth
+                        : (constraints.maxWidth - 12) / 2;
 
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      SizedBox(
-                        width: tileWidth,
-                        child: const _HeroDetailTile(
-                          icon: Icons.work_outline_rounded,
-                          title: 'Current role',
-                          subtitle: 'Mobile Application Developer',
+                    return Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        SizedBox(
+                          width: tileWidth,
+                          child: const _HeroDetailTile(
+                            icon: Icons.work_outline_rounded,
+                            title: 'Current role',
+                            subtitle: 'Mobile Application Developer',
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: tileWidth,
-                        child: const _HeroDetailTile(
-                          icon: Icons.location_on_outlined,
-                          title: 'Base',
-                          subtitle: 'Raipur, India',
+                        SizedBox(
+                          width: tileWidth,
+                          child: const _HeroDetailTile(
+                            icon: Icons.location_on_outlined,
+                            title: 'Base',
+                            subtitle: 'Raipur, India',
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ],
           ),
         ),
@@ -1430,11 +1472,13 @@ class _HeroImageFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = PortfolioScope.of(context);
-    final compact = MediaQuery.sizeOf(context).width < 760;
+    final size = MediaQuery.sizeOf(context);
+    final compact = size.width < 760;
+    final dense = size.width < 420 || size.height < 760;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(dense ? 8 : 10),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1455,7 +1499,11 @@ class _HeroImageFrame extends StatelessWidget {
         ],
       ),
       child: AspectRatio(
-        aspectRatio: compact ? 0.78 : 1.05,
+        aspectRatio: dense
+            ? 0.92
+            : compact
+            ? 0.84
+            : 1.05,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -1497,8 +1545,16 @@ class _HeroImageFrame extends StatelessWidget {
               ),
             ),
             Positioned(
-              right: compact ? -4 : -6,
-              bottom: compact ? -40 : -38,
+              right: dense
+                  ? -2
+                  : compact
+                  ? -4
+                  : -6,
+              bottom: dense
+                  ? -30
+                  : compact
+                  ? -36
+                  : -38,
               child: const _HeroMetricPill(
                 value: '85%',
                 label: 'Hands-on ownership',
@@ -1514,11 +1570,13 @@ class _HeroImageFrame extends StatelessWidget {
 class _HeroNameCard extends StatelessWidget {
   const _HeroNameCard({
     required this.compact,
+    required this.dense,
     required this.name,
     required this.title,
   });
 
   final bool compact;
+  final bool dense;
   final String name;
   final String title;
 
@@ -1526,7 +1584,7 @@ class _HeroNameCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(dense ? 13 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1539,25 +1597,32 @@ class _HeroNameCard extends StatelessWidget {
             name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontSize: dense ? 20 : null,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: dense ? 4 : 6),
           Text(
             title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppPalette.cobalt),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppPalette.cobalt,
+              fontSize: dense ? 16 : null,
+            ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: dense ? 8 : 10),
           Text(
             'UI polish, structured state management and location-focused product delivery.',
-            maxLines: compact ? 3 : null,
+            maxLines: dense
+                ? 2
+                : compact
+                ? 3
+                : null,
             overflow: compact ? TextOverflow.ellipsis : null,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: dense ? 13 : null,
               color: AppPalette.ink.withValues(alpha: 0.72),
             ),
           ),
@@ -1638,10 +1703,17 @@ class _HeroSurfaceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final dense = size.width < 420 || size.height < 760;
+
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 12 : 14,
-        vertical: 11,
+        horizontal: dense
+            ? 10
+            : compact
+            ? 12
+            : 14,
+        vertical: dense ? 9 : 11,
       ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
@@ -1651,16 +1723,17 @@ class _HeroSurfaceChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Colors.white),
-          const SizedBox(width: 8),
+          Icon(icon, size: dense ? 14 : 16, color: Colors.white),
+          SizedBox(width: dense ? 6 : 8),
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge?.copyWith(color: Colors.white),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: Colors.white,
+                fontSize: dense ? 12 : null,
+              ),
             ),
           ),
         ],
@@ -1678,39 +1751,72 @@ class _HeroMetricPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final dense = size.width < 420 || size.height < 760;
+    final compact = size.width < 760;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppPalette.line),
-        boxShadow: [
-          BoxShadow(
-            color: AppPalette.ink.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: dense
+            ? 148
+            : compact
+            ? 170
+            : 190,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: AppPalette.cobalt,
-              fontWeight: FontWeight.w800,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: dense
+              ? 11
+              : compact
+              ? 12
+              : 14,
+          vertical: dense
+              ? 9
+              : compact
+              ? 10
+              : 12,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(dense ? 16 : 18),
+          border: Border.all(color: AppPalette.line),
+          boxShadow: [
+            BoxShadow(
+              color: AppPalette.ink.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 10),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppPalette.ink.withValues(alpha: 0.66),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style:
+                  (dense
+                          ? theme.textTheme.titleMedium
+                          : theme.textTheme.titleLarge)
+                      ?.copyWith(
+                        color: AppPalette.cobalt,
+                        fontWeight: FontWeight.w800,
+                      ),
             ),
-          ),
-        ],
+            SizedBox(height: dense ? 1 : 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: dense ? 11 : null,
+                color: AppPalette.ink.withValues(alpha: 0.66),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
