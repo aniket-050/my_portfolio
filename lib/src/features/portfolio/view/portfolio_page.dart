@@ -1237,7 +1237,6 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
   Widget build(BuildContext context) {
     final content = PortfolioScope.of(context);
     final compact = MediaQuery.sizeOf(context).width < 760;
-    final veryCompact = MediaQuery.sizeOf(context).width < 420;
 
     return RepaintBoundary(
       child: MouseRegion(
@@ -1357,7 +1356,7 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                           const SizedBox(height: 16),
                           _HeroNameCard(
                             compact: compact,
-                            topInset: veryCompact ? 62 : 56,
+                            topInset: compact ? 86 : 78,
                             name: content.name,
                             title: content.title,
                           ),
@@ -1373,8 +1372,8 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                       ),
                     ),
                     Positioned(
-                      right: -6,
-                      bottom: compact ? 106 : 96,
+                      right: compact ? -4 : -6,
+                      bottom: compact ? 148 : 128,
                       child: const _HeroMetricPill(
                         value: '85%',
                         label: 'Hands-on ownership',
