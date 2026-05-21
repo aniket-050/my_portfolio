@@ -1353,10 +1353,9 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                             },
                             child: const _HeroImageFrame(),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: compact ? 70 : 64),
                           _HeroNameCard(
                             compact: compact,
-                            topInset: compact ? 86 : 78,
                             name: content.name,
                             title: content.title,
                           ),
@@ -1369,14 +1368,6 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                       child: _HeroMetricPill(
                         value: '08+',
                         label: 'Apps shipped',
-                      ),
-                    ),
-                    Positioned(
-                      right: compact ? -4 : -6,
-                      bottom: compact ? 148 : 128,
-                      child: const _HeroMetricPill(
-                        value: '85%',
-                        label: 'Hands-on ownership',
                       ),
                     ),
                   ],
@@ -1453,42 +1444,55 @@ class _HeroImageFrame extends StatelessWidget {
       ),
       child: AspectRatio(
         aspectRatio: compact ? 0.78 : 1.05,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppPalette.sky.withValues(alpha: 0.44),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-              _PortfolioProfileImage(source: content.profileAsset),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: compact ? 72 : 82,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        AppPalette.ink.withValues(alpha: 0.2),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppPalette.sky.withValues(alpha: 0.44),
+                          Colors.white,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
-                ),
+                  _PortfolioProfileImage(source: content.profileAsset),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      height: compact ? 72 : 82,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            AppPalette.ink.withValues(alpha: 0.2),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              right: compact ? -4 : -6,
+              bottom: compact ? -40 : -38,
+              child: const _HeroMetricPill(
+                value: '85%',
+                label: 'Hands-on ownership',
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1498,13 +1502,11 @@ class _HeroImageFrame extends StatelessWidget {
 class _HeroNameCard extends StatelessWidget {
   const _HeroNameCard({
     required this.compact,
-    required this.topInset,
     required this.name,
     required this.title,
   });
 
   final bool compact;
-  final double topInset;
   final String name;
   final String title;
 
@@ -1512,7 +1514,7 @@ class _HeroNameCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(16, topInset, 16, 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
