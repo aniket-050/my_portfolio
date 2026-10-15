@@ -680,17 +680,61 @@ class _HomePanel extends StatelessWidget {
   final VoidCallback onResumeTap;
   final ValueChanged<String> onLaunch;
 
+  /// Width the desktop hero is designed at. Narrower non-mobile screens render
+  /// the same layout scaled down so the look stays identical.
+  static const double _designWidth = 1240;
+
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final stacked = Breakpoints.isMobile(mediaQuery.size.width);
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final stacked = constraints.maxWidth < 1160;
-        final targetHeight = stacked
-            ? null
-            : math.max(620.0, viewportHeight - 132.0);
+        if (stacked) {
+          return _buildPanel(stacked: true, minHeight: 0);
+        }
 
+        final scale = math.min(1.0, constraints.maxWidth / _designWidth);
+        final panel = SizedBox(
+          width: constraints.maxWidth / scale,
+          child: _buildPanel(
+            stacked: false,
+            minHeight: math.max(620.0, viewportHeight - 132.0) / scale,
+          ),
+        );
+
+        if (scale == 1.0) {
+          return panel;
+        }
+
+        // Hero widgets read MediaQuery for density, so report a desktop-sized
+        // viewport to keep the scaled layout pixel-for-pixel consistent.
+        return SizedBox(
+          width: constraints.maxWidth,
+          child: FittedBox(
+            fit: BoxFit.fitWidth,
+            alignment: Alignment.topCenter,
+            child: MediaQuery(
+              data: mediaQuery.copyWith(
+                size: Size(
+                  math.max(mediaQuery.size.width, 1320),
+                  math.max(mediaQuery.size.height, 760),
+                ),
+              ),
+              child: panel,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPanel({required bool stacked, required double minHeight}) {
+    return Builder(
+      builder: (context) {
         return ConstrainedBox(
-          constraints: BoxConstraints(minHeight: targetHeight ?? 0),
+          constraints: BoxConstraints(minHeight: minHeight),
           child: Container(
             padding: EdgeInsets.all(stacked ? 16 : 18),
             decoration: BoxDecoration(
@@ -1005,8 +1049,8 @@ class _HeroCanvas extends StatelessWidget {
                 ),
               ),
               Positioned(
-                right: stacked ? -18 : 8,
-                top: stacked ? -24 : -34,
+                left: stacked ? -18 : -40,
+                top: stacked ? -24 : -56,
                 child: const _OrbitalShape(),
               ),
               if (stacked)
@@ -1360,7 +1404,7 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                     if (!compact)
                       Positioned(
                         top: -28,
-                        right: -14,
+                        left: -14,
                         child: IgnorePointer(
                           child: Opacity(
                             opacity: 0.52,
@@ -1499,11 +1543,8 @@ class _HeroImageFrame extends StatelessWidget {
         ],
       ),
       child: AspectRatio(
-        aspectRatio: dense
-            ? 0.92
-            : compact
-            ? 0.84
-            : 1.05,
+        // Passport proportions (roughly 35:45).
+        aspectRatio: dense ? 0.86 : 0.8,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -1669,8 +1710,8 @@ class _PortfolioProfileImage extends StatelessWidget {
     final image = isRemote
         ? Image.network(
             source,
-            fit: BoxFit.contain,
-            alignment: Alignment.bottomCenter,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
             filterQuality: FilterQuality.medium,
             errorBuilder: (context, error, stackTrace) {
               return const _ProfileFallback();
@@ -1678,8 +1719,8 @@ class _PortfolioProfileImage extends StatelessWidget {
           )
         : Image.asset(
             source,
-            fit: BoxFit.contain,
-            alignment: Alignment.bottomCenter,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
             filterQuality: FilterQuality.medium,
             errorBuilder: (context, error, stackTrace) {
               return const _ProfileFallback();
