@@ -915,6 +915,14 @@ Future<void> _editProject(
     text: item?.highlights.join('\n') ?? '',
   );
   final stack = TextEditingController(text: item?.stack.join(', ') ?? '');
+  final links = TextEditingController(
+    text:
+        item?.links.map((link) => '${link.label} | ${link.url}').join('\n') ??
+        '',
+  );
+  final images = TextEditingController(text: item?.images.join('\n') ?? '');
+  final iconAsset = TextEditingController(text: item?.iconAsset ?? '');
+  final metric = TextEditingController(text: item?.metric ?? '');
 
   await _showEditor(
     context,
@@ -942,6 +950,20 @@ Future<void> _editProject(
         maxLines: 6,
       ),
       _AdminField(controller: stack, label: 'Stack comma separated'),
+      _AdminField(
+        controller: links,
+        label: 'Links, one per line as Label | URL',
+        minLines: 2,
+        maxLines: 4,
+      ),
+      _AdminField(
+        controller: images,
+        label: 'Screenshot asset paths or URLs, one per line',
+        minLines: 2,
+        maxLines: 4,
+      ),
+      _AdminField(controller: iconAsset, label: 'App icon asset path or URL'),
+      _AdminField(controller: metric, label: 'Metric (e.g. 10K+ downloads)'),
     ],
     onSave: () {
       content.upsertProject(
@@ -955,6 +977,19 @@ Future<void> _editProject(
           contribution: contribution.text.trim(),
           highlights: _splitLines(highlights.text),
           stack: _splitComma(stack.text),
+          links: [
+            for (final line in _splitLines(links.text))
+              if (line.contains('|'))
+                ProjectLink(
+                  label: line.substring(0, line.indexOf('|')).trim(),
+                  url: line.substring(line.indexOf('|') + 1).trim(),
+                ),
+          ],
+          images: _splitLines(images.text),
+          iconAsset: iconAsset.text.trim().isEmpty
+              ? null
+              : iconAsset.text.trim(),
+          metric: metric.text.trim().isEmpty ? null : metric.text.trim(),
         ),
       );
     },

@@ -10,7 +10,12 @@ Future<void> main() async {
   usePathUrlStrategy();
 
   if (FirebaseConfig.isConfigured) {
-    await Firebase.initializeApp(options: FirebaseConfig.options);
+    try {
+      await Firebase.initializeApp(options: FirebaseConfig.options);
+    } catch (error) {
+      // The portfolio must still render if Firebase is unreachable.
+      debugPrint('Firebase initialisation failed: $error');
+    }
   }
 
   runApp(const PortfolioApp());

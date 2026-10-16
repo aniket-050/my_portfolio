@@ -236,6 +236,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                           child: _ProjectsPanel(
                                             hoveredProjectId:
                                                 state.hoveredProjectId,
+                                            onLaunch: _launch,
                                           ),
                                         ),
                                         _ViewportAwareSection(
@@ -1458,14 +1459,15 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                         ],
                       ),
                     ),
-                    Positioned(
-                      left: dense ? -2 : -6,
-                      top: dense ? 8 : 12,
-                      child: const _HeroMetricPill(
-                        value: '08+',
-                        label: 'Apps shipped',
+                    if (content.stats.isNotEmpty)
+                      Positioned(
+                        left: dense ? -2 : -6,
+                        top: dense ? 8 : 12,
+                        child: _HeroMetricPill(
+                          value: content.stats.first.value,
+                          label: content.stats.first.label,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -1483,18 +1485,20 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
                       children: [
                         SizedBox(
                           width: tileWidth,
-                          child: const _HeroDetailTile(
+                          child: _HeroDetailTile(
                             icon: Icons.work_outline_rounded,
                             title: 'Current role',
-                            subtitle: 'Mobile Application Developer',
+                            subtitle: content.experience.isEmpty
+                                ? content.title
+                                : content.experience.first.role,
                           ),
                         ),
                         SizedBox(
                           width: tileWidth,
-                          child: const _HeroDetailTile(
+                          child: _HeroDetailTile(
                             icon: Icons.location_on_outlined,
                             title: 'Base',
-                            subtitle: 'Raipur, India',
+                            subtitle: _shortLocation(content.location),
                           ),
                         ),
                       ],
@@ -1508,6 +1512,12 @@ class _HeroVisualPanelState extends State<_HeroVisualPanel>
       ),
     );
   }
+}
+
+/// "Raipur, Chhattisgarh, India" -> "Raipur, India".
+String _shortLocation(String location) {
+  final parts = location.split(',').map((part) => part.trim()).toList();
+  return parts.length > 2 ? '${parts.first}, ${parts.last}' : location;
 }
 
 class _HeroImageFrame extends StatelessWidget {
@@ -1585,22 +1595,23 @@ class _HeroImageFrame extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              right: dense
-                  ? -2
-                  : compact
-                  ? -4
-                  : -6,
-              bottom: dense
-                  ? -30
-                  : compact
-                  ? -36
-                  : -38,
-              child: const _HeroMetricPill(
-                value: '85%',
-                label: 'Hands-on ownership',
+            if (content.stats.length > 1)
+              Positioned(
+                right: dense
+                    ? -2
+                    : compact
+                    ? -4
+                    : -6,
+                bottom: dense
+                    ? -30
+                    : compact
+                    ? -36
+                    : -38,
+                child: _HeroMetricPill(
+                  value: content.stats.last.value,
+                  label: content.stats.last.label,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -2294,14 +2305,32 @@ class _FocusCard extends StatelessWidget {
   }
 }
 
-class _ProjectsPanel extends StatelessWidget {
-  const _ProjectsPanel({required this.hoveredProjectId});
+class _ProjectsPanel extends StatefulWidget {
+  const _ProjectsPanel({
+    required this.hoveredProjectId,
+    required this.onLaunch,
+  });
 
   final String? hoveredProjectId;
+  final ValueChanged<String> onLaunch;
+
+  @override
+  State<_ProjectsPanel> createState() => _ProjectsPanelState();
+}
+
+class _ProjectsPanelState extends State<_ProjectsPanel> {
+  static const int _featuredCount = 6;
+
+  bool _showAll = false;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final content = PortfolioScope.of(context);
+    final projects = _showAll
+        ? content.projects
+        : content.projects.take(_featuredCount).toList();
+    final hiddenCount = content.projects.length - _featuredCount;
 
     return Container(
       padding: const EdgeInsets.all(28),
@@ -2316,9 +2345,9 @@ class _ProjectsPanel extends StatelessWidget {
             child: _SectionIntro(
               eyebrow: 'Selected work',
               title:
-                  'Production projects shaped by maps, dashboards and complex workflows.',
+                  'Production apps on Google Play, shaped by maps, real-time data and complex workflows.',
               description:
-                  'These projects reflect the mix of UI ownership, API integration and operational thinking that runs through my Flutter work.',
+                  'From Flutter products I lead today to Laravel APIs and React Native migrations, these projects show the ownership I bring across the stack.',
               light: true,
             ),
           ),
@@ -2333,15 +2362,16 @@ class _ProjectsPanel extends StatelessWidget {
                 spacing: 16,
                 runSpacing: 16,
                 children: [
-                  for (int index = 0; index < content.projects.length; index++)
+                  for (int index = 0; index < projects.length; index++)
                     SizedBox(
                       width: cardWidth,
                       child: RevealOnScroll(
-                        delay: Duration(milliseconds: 70 * (index + 1)),
+                        delay: Duration(milliseconds: 70 * ((index % 2) + 1)),
                         child: _ProjectCard(
-                          project: content.projects[index],
+                          project: projects[index],
                           isHovered:
-                              hoveredProjectId == content.projects[index].id,
+                              widget.hoveredProjectId == projects[index].id,
+                          onLaunch: widget.onLaunch,
                         ),
                       ),
                     ),
@@ -2349,6 +2379,36 @@ class _ProjectsPanel extends StatelessWidget {
               );
             },
           ),
+          if (hiddenCount > 0) ...[
+            const SizedBox(height: 22),
+            Center(
+              child: OutlinedButton.icon(
+                onPressed: () => setState(() => _showAll = !_showAll),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  textStyle: theme.textTheme.labelLarge,
+                ),
+                icon: Icon(
+                  _showAll
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                ),
+                label: Text(
+                  _showAll
+                      ? 'Show fewer projects'
+                      : 'View all ${content.projects.length} projects',
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -2356,10 +2416,15 @@ class _ProjectsPanel extends StatelessWidget {
 }
 
 class _ProjectCard extends StatelessWidget {
-  const _ProjectCard({required this.project, required this.isHovered});
+  const _ProjectCard({
+    required this.project,
+    required this.isHovered,
+    required this.onLaunch,
+  });
 
   final ProjectItem project;
   final bool isHovered;
+  final ValueChanged<String> onLaunch;
 
   @override
   Widget build(BuildContext context) {
@@ -2389,21 +2454,85 @@ class _ProjectCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: AppPalette.accentGradient,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                project.category,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
+            _ProjectMedia(project: project),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: AppPalette.accentGradient,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    project.category,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+                if (project.metric != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppPalette.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppPalette.line),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.download_done_rounded,
+                          size: 16,
+                          color: AppPalette.cobalt,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          project.metric!,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: AppPalette.cobalt,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 18),
-            Text(project.title, style: theme.textTheme.headlineSmall),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (project.iconAsset != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: _ProjectImage(
+                        source: project.iconAsset!,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: Text(
+                    project.title,
+                    style: theme.textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Text(
               project.timeline,
@@ -2416,16 +2545,29 @@ class _ProjectCard extends StatelessWidget {
             Text(project.description, style: theme.textTheme.bodyLarge),
             const SizedBox(height: 18),
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppPalette.surface,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                project.contribution,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppPalette.ink.withValues(alpha: 0.82),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'My role',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: AppPalette.ink.withValues(alpha: 0.56),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    project.contribution,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppPalette.ink.withValues(alpha: 0.82),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 18),
@@ -2471,10 +2613,253 @@ class _ProjectCard extends StatelessWidget {
                   )
                   .toList(),
             ),
+            if (project.links.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  for (final link in project.links)
+                    link == project.links.first
+                        ? FilledButton.icon(
+                            onPressed: () => onLaunch(link.url),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppPalette.ink,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: Icon(_projectLinkIcon(link), size: 18),
+                            label: Text(link.label),
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: () => onLaunch(link.url),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppPalette.ink,
+                              side: const BorderSide(color: AppPalette.line),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: Icon(_projectLinkIcon(link), size: 18),
+                            label: Text(link.label),
+                          ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+}
+
+IconData _projectLinkIcon(ProjectLink link) {
+  if (link.isPlayStore) {
+    return Icons.shop_rounded;
+  }
+  if (link.label.toLowerCase().contains('website')) {
+    return Icons.language_rounded;
+  }
+  return Icons.open_in_new_rounded;
+}
+
+class _ProjectMedia extends StatelessWidget {
+  const _ProjectMedia({required this.project});
+
+  final ProjectItem project;
+
+  @override
+  Widget build(BuildContext context) {
+    final images = project.images;
+
+    if (images.length == 1) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: AspectRatio(
+          aspectRatio: 16 / 10,
+          child: _ZoomableProjectImage(
+            source: images.first,
+            title: project.title,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppPalette.sky.withValues(alpha: 0.28),
+            AppPalette.coral.withValues(alpha: 0.16),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: images.isEmpty
+          ? _ProjectMediaPlaceholder(project: project)
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (int index = 0; index < images.take(3).length; index++)
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: index == 0 ? 0 : 6,
+                        right: index == 2 ? 0 : 6,
+                        // Middle screenshot sits higher for a staggered look.
+                        bottom: index == 1 ? 18 : 0,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                          bottom: Radius.circular(16),
+                        ),
+                        child: AspectRatio(
+                          aspectRatio: 9 / 17,
+                          child: _ZoomableProjectImage(
+                            source: images[index],
+                            title: project.title,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+}
+
+class _ProjectMediaPlaceholder extends StatelessWidget {
+  const _ProjectMediaPlaceholder({required this.project});
+
+  final ProjectItem project;
+
+  @override
+  Widget build(BuildContext context) {
+    final website = project.links
+        .where((link) => !link.isPlayStore)
+        .map((link) => Uri.tryParse(link.url)?.host.replaceFirst('www.', ''))
+        .whereType<String>()
+        .firstOrNull;
+
+    return SizedBox(
+      height: 180,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (project.iconAsset != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: SizedBox(
+                width: 84,
+                height: 84,
+                child: _ProjectImage(
+                  source: project.iconAsset!,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          if (website != null) ...[
+            const SizedBox(height: 14),
+            Text(
+              website,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppPalette.ink.withValues(alpha: 0.72),
+              ),
+            ),
+          ],
+          const SizedBox(height: 18),
+        ],
+      ),
+    );
+  }
+}
+
+class _ZoomableProjectImage extends StatelessWidget {
+  const _ZoomableProjectImage({
+    required this.source,
+    required this.title,
+    required this.fit,
+  });
+
+  final String source;
+  final String title;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$title screenshot, tap to enlarge',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.zoomIn,
+        child: GestureDetector(
+          onTap: () => showDialog<void>(
+            context: context,
+            barrierColor: Colors.black.withValues(alpha: 0.82),
+            builder: (context) => GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Dialog(
+                backgroundColor: Colors.transparent,
+                insetPadding: const EdgeInsets.all(24),
+                child: InteractiveViewer(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: _ProjectImage(source: source, fit: BoxFit.contain),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          child: _ProjectImage(source: source, fit: fit),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProjectImage extends StatelessWidget {
+  const _ProjectImage({required this.source, required this.fit});
+
+  final String source;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget fallback(BuildContext context, Object error, StackTrace? stack) {
+      return const ColoredBox(color: AppPalette.surface);
+    }
+
+    return source.startsWith('http')
+        ? Image.network(
+            source,
+            fit: fit,
+            filterQuality: FilterQuality.medium,
+            errorBuilder: fallback,
+          )
+        : Image.asset(
+            source,
+            fit: fit,
+            filterQuality: FilterQuality.medium,
+            errorBuilder: fallback,
+          );
   }
 }
 

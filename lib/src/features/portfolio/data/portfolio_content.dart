@@ -5,9 +5,9 @@ import '../models/portfolio_models.dart';
 abstract final class PortfolioContent {
   static const String name = 'Aniket Parihar';
   static const String headline =
-      'Flutter engineer building products around maps, motion and scale.';
+      'Flutter engineer shipping production apps with 60K+ Play Store installs.';
   static const String summary =
-      'I design and ship production Flutter applications with strong ownership across UI, business logic, state management and API integration. My core strengths are Google Maps, GIS workflows, geofencing, live location tracking and responsive product experiences.';
+      'I design and ship production Flutter applications with strong ownership across UI, business logic, state management and API integration. 8 of my apps are live on Google Play, and my core strengths are Google Maps, GIS workflows, geofencing, live location tracking and responsive product experiences.';
   static const String location = 'Raipur, Chhattisgarh, India';
   static const String title = 'Software Engineer (Flutter)';
   static const String phone = '+91 87705 61223';
@@ -39,9 +39,9 @@ abstract final class PortfolioContent {
       detail: 'Shipping business-critical mobile experiences since 2023.',
     ),
     PortfolioStat(
-      value: '85%',
-      label: 'Ownership',
-      detail: 'Hands-on contribution on multiple production Flutter projects.',
+      value: '60K+',
+      label: 'Play Store Installs',
+      detail: 'Across live apps I built, extended or modernised.',
     ),
   ];
 
@@ -66,14 +66,110 @@ abstract final class PortfolioContent {
     ),
   ];
 
+  static const String _digikraftProjects =
+      'https://digikraftsocial.com/feature';
+
   static const List<ProjectItem> projects = [
+    ProjectItem(
+      id: 'emilo',
+      title: 'eMILO',
+      category: 'Social networking app',
+      timeline: 'Current work • Live on Google Play',
+      description:
+          'A social media app that goes beyond the feed: friends, chat, posts, photos, videos and stories, plus Soft Corner, a private space made just for two.',
+      contribution:
+          'Building and shipping product features for a live consumer social app, from feed and media experiences to chat and privacy-focused flows.',
+      highlights: [
+        'Feed, stories, photo and video sharing in one social experience',
+        'Friends, real-time chat and community features',
+        'Soft Corner: private couple space with AI-powered mutual-crush matching',
+      ],
+      stack: ['Flutter', 'Social Feed', 'Real-time Chat', 'Media'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url: 'https://play.google.com/store/apps/details?id=com.emilo.app',
+        ),
+      ],
+      images: [
+        'assets/images/projects/emilo_1.webp',
+        'assets/images/projects/emilo_2.webp',
+        'assets/images/projects/emilo_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/emilo_icon.webp',
+    ),
+    ProjectItem(
+      id: 'protestim',
+      title: 'PROTestim',
+      category: 'Government exam proctoring • Uzbekistan',
+      timeline: 'Digikraft Social • Flutter + Riverpod',
+      description:
+          'An Uzbekistan-based government entrance exam platform where applicants take proctored tests that simulate the real exam and see which universities they can get into.',
+      contribution:
+          'Built the Flutter app at Digikraft Social using Riverpod for state management across exam sessions, results and university insights.',
+      highlights: [
+        'Proctored, timed test sessions that mirror the real entrance exam',
+        'University rankings, required subjects and passing-score insights',
+        'Parent view to follow an applicant\'s preparation and progress',
+      ],
+      stack: ['Flutter', 'Riverpod', 'REST APIs', 'Exam Proctoring'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url: 'https://play.google.com/store/apps/details?id=uz.testim',
+        ),
+        ProjectLink(label: 'Digikraft projects', url: _digikraftProjects),
+      ],
+      images: [
+        'assets/images/projects/protestim_1.webp',
+        'assets/images/projects/protestim_2.webp',
+        'assets/images/projects/protestim_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/protestim_icon.webp',
+      metric: '10K+ downloads',
+    ),
+    ProjectItem(
+      id: 'attendance',
+      title: 'Attendance Management • Flash Force',
+      category: 'Location-based workforce system',
+      timeline: 'Digikraft Social • Production feature ownership',
+      description:
+          'Enterprise attendance and field-force tracking built around verified presence, including Flash Force, a sales and workforce tracking app for organisations.',
+      contribution:
+          'Implemented geofenced attendance, live employee tracking and secure role-driven workflows.',
+      highlights: [
+        'Geofence-validated punch-in and punch-out',
+        'Live location and route tracking with online and offline support',
+        'Attendance reports, history and role-based dashboards',
+      ],
+      stack: ['Flutter', 'Geofencing', 'Google Maps SDK', 'RBAC'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url:
+              'https://play.google.com/store/apps/details?id=com.origainglobalcorp.flashforce',
+        ),
+        ProjectLink(
+          label: 'Website',
+          url: 'https://appwizz.in/flash-force/index.php',
+        ),
+        ProjectLink(label: 'Digikraft projects', url: _digikraftProjects),
+      ],
+      images: [
+        'assets/images/projects/flashforce_1.webp',
+        'assets/images/projects/flashforce_2.webp',
+        'assets/images/projects/flashforce_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/flashforce_icon.webp',
+      metric: '500+ downloads',
+    ),
     ProjectItem(
       id: 'gharkasathi',
       title: 'GharKaSathi',
       category: 'Real estate + home services',
-      timeline: 'Lead Flutter contribution • 70-80%',
+      timeline: 'Lead Flutter developer',
       description:
-          'A property and services platform covering buy, sell, rent and lease journeys with location-aware discovery at the center.',
+          'Chhattisgarh\'s unified property and home platform: zero-brokerage real estate, turnkey construction, modular interiors and 30-minute home repairs across Raipur, Bhilai, Durg and Bilaspur.',
       contribution:
           'Built high-ownership Flutter modules, property discovery flows and service booking journeys.',
       highlights: [
@@ -82,54 +178,177 @@ abstract final class PortfolioContent {
         'Real-time booking flows spanning property and home services',
       ],
       stack: ['Flutter', 'Google Maps', 'GIS', 'REST APIs'],
+      links: [
+        ProjectLink(label: 'Website', url: 'https://www.gharkasathi.com'),
+      ],
+      iconAsset: 'assets/images/projects/gharkasathi_icon.png',
     ),
     ProjectItem(
-      id: 'attendance',
-      title: 'Attendance Management Application',
-      category: 'Location-based workforce system',
-      timeline: 'Production feature ownership',
+      id: 'competition-community',
+      title: 'Competition Community',
+      category: 'EdTech • React Native modernisation',
+      timeline: 'Digikraft Social • Maintenance & migration',
       description:
-          'Attendance tracking designed around verified presence, movement context and role-based operational visibility.',
+          'A learning app for competitive exam preparation with structured lessons, topic-wise material and regular updates, used by 50K+ learners.',
       contribution:
-          'Implemented geofenced attendance, live employee tracking and secure role-driven workflows.',
+          'Took over an outdated React Native codebase for maintenance and migrated it to the latest React Native version, bringing the app back to a running, releasable state.',
       highlights: [
-        'Punch-in and punch-out powered by geofencing rules',
-        'Live location tracking integrated into workforce visibility',
-        'Real-time attendance status updates for multiple user roles',
+        'Migrated the legacy codebase to the latest React Native version',
+        'Updated all configuration, native build setup and dependency packages',
+        'Resolved breaking changes and restored a stable, production-ready build',
       ],
-      stack: ['Flutter', 'Geofencing', 'Google Maps SDK', 'RBAC'],
+      stack: ['React Native', 'JavaScript', 'Native Build Config', 'Upgrades'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url: 'https://play.google.com/store/apps/details?id=com.cocomobile1',
+        ),
+        ProjectLink(label: 'Website', url: 'https://www.cocoraipur.com'),
+      ],
+      images: [
+        'assets/images/projects/coco_1.webp',
+        'assets/images/projects/coco_2.webp',
+        'assets/images/projects/coco_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/coco_icon.webp',
+      metric: '50K+ downloads',
+    ),
+    ProjectItem(
+      id: 'fixhr',
+      title: 'FixHR',
+      category: 'HR & attendance management',
+      timeline: 'Fixing Dots • Flutter',
+      description:
+          'Mobile and web HR software for startups and growing businesses that simplifies attendance, leave and work-hour tracking.',
+      contribution:
+          'Worked on the Flutter app for attendance, leave and allowance workflows connected to the HR backend.',
+      highlights: [
+        'Attendance, leave and work-hour tracking for teams',
+        'TA/DA allowance calculated from background location tracking',
+        'Encrypted location data used only for allowance calculation',
+      ],
+      stack: ['Flutter', 'Background Location', 'REST APIs', 'HRMS'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url: 'https://play.google.com/store/apps/details?id=com.fd.fixHR',
+        ),
+      ],
+      images: [
+        'assets/images/projects/fixhr_1.webp',
+        'assets/images/projects/fixhr_2.webp',
+        'assets/images/projects/fixhr_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/fixhr_icon.webp',
+      metric: '1K+ downloads',
     ),
     ProjectItem(
       id: 'fixq',
       title: 'FixQ',
       category: 'Quotation workflow platform',
-      timeline: 'Flutter + Laravel collaboration',
+      timeline: 'Fixing Dots • Flutter + Laravel',
       description:
-          'A quotation management product with dashboards, approval pipelines and pricing-focused workflows.',
+          'A quotation management app for businesses to create branded price proposals, preview them and share them with clients as PDF, print, WhatsApp or email.',
       contribution:
           'Delivered frontend flows, pricing logic integration and robust REST-backed approval journeys.',
       highlights: [
-        'Dashboard and quotation builder modules',
-        'Authentication, pricing logic and approval pipeline support',
-        'Role-aware experiences for complex quotation operations',
+        'Dashboard, client list and quotation builder modules',
+        'PDF export, print and WhatsApp / email sharing',
+        'Business branding with logo, address, colours and fonts',
       ],
-      stack: ['Flutter', 'Laravel', 'REST APIs', 'Business Logic'],
+      stack: ['Flutter', 'Laravel', 'REST APIs', 'PDF'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url:
+              'https://play.google.com/store/apps/details?id=com.fixingdots.htkc.fixq',
+        ),
+        ProjectLink(label: 'Website', url: 'https://fixq.app'),
+      ],
+      images: [
+        'assets/images/projects/fixq_1.webp',
+        'assets/images/projects/fixq_2.webp',
+        'assets/images/projects/fixq_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/fixq_icon.webp',
     ),
     ProjectItem(
-      id: 'digikraft',
-      title: 'Digikraft Product Suite',
-      category: 'Exam, grocery, LMS and e-commerce',
-      timeline: 'May 2024 - Present',
+      id: 'bbk',
+      title: 'Bluebirds Kindergarten (BBK)',
+      category: 'School management • Parent app',
+      timeline: 'Fixing Dots • Laravel APIs + Flutter',
       description:
-          'A multi-product Flutter delivery stream spanning assessment, commerce and learning use cases.',
+          'Kindergarten management software for parents and staff, with live classroom streaming, attendance, fees, timetable and daily activities across web, mobile and tablet.',
       contribution:
-          'Contributed across UI, state handling and API-connected flows for multiple consumer and enterprise apps.',
+          'Implemented the REST APIs in Laravel and integrated them on the Flutter side, owning features end to end.',
       highlights: [
-        'Secure authentication and role-driven dashboards',
-        'Payment-enabled workflows and real-time operational features',
-        'Cross-product delivery across exam, grocery, LMS and e-commerce apps',
+        'Live classroom streaming for parents',
+        'Attendance, fees, school calendar, timetable and food curriculum',
+        'Student ID cards, gallery, daily activities and notifications',
       ],
-      stack: ['Flutter', 'Payments', 'Dashboards', 'API Integration'],
+      stack: ['Flutter', 'Laravel', 'REST APIs', 'Full-stack'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url:
+              'https://play.google.com/store/apps/details?id=com.fixingdots.htkc.bbk_parent',
+        ),
+      ],
+      images: [
+        'assets/images/projects/bbk_1.webp',
+        'assets/images/projects/bbk_2.webp',
+        'assets/images/projects/bbk_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/bbk_icon.webp',
+    ),
+    ProjectItem(
+      id: 'mbc',
+      title: 'My Baby Connect (MBC)',
+      category: 'School management • Admin app',
+      timeline: 'Fixing Dots • Laravel APIs + Flutter',
+      description:
+          'Admin app for a kindergarten management platform to run classrooms, staff, students, fees and parent communication from one place.',
+      contribution:
+          'Implemented the REST APIs in Laravel and integrated them on the Flutter side, owning features end to end.',
+      highlights: [
+        'Student, staff, attendance and fee management',
+        'Timetable, curriculum, food menu and school calendar',
+        'Live classroom streaming and parent notifications',
+      ],
+      stack: ['Flutter', 'Laravel', 'REST APIs', 'Full-stack'],
+      links: [
+        ProjectLink(
+          label: 'Google Play',
+          url:
+              'https://play.google.com/store/apps/details?id=com.fixingdots.htkc.mbc_admin',
+        ),
+      ],
+      images: [
+        'assets/images/projects/mbc_1.webp',
+        'assets/images/projects/mbc_2.webp',
+        'assets/images/projects/mbc_3.webp',
+      ],
+      iconAsset: 'assets/images/projects/mbc_icon.webp',
+    ),
+    ProjectItem(
+      id: 'grocery',
+      title: 'Grocery App',
+      category: 'Grocery e-commerce',
+      timeline: 'Digikraft Social • Flutter',
+      description:
+          'A mobile app for online grocery shopping with category browsing, special offers and a quick checkout.',
+      contribution:
+          'Built the Flutter shopping experience, from catalogue and cart to checkout and payment flows.',
+      highlights: [
+        'Category browsing, search and special offers',
+        'Cart, delivery address and order summary',
+        'Payment-enabled checkout',
+      ],
+      stack: ['Flutter', 'E-commerce', 'Payments', 'REST APIs'],
+      links: [
+        ProjectLink(label: 'Digikraft projects', url: _digikraftProjects),
+      ],
+      images: ['assets/images/projects/grocery_mockup.jpg'],
     ),
   ];
 
@@ -140,11 +359,12 @@ abstract final class PortfolioContent {
       period: 'May 2024 - Present',
       location: 'Raipur, India',
       summary:
-          'Contributing 70-85% of Flutter development across exam, grocery, attendance, LMS and e-commerce products.',
+          'Leading Flutter development across exam proctoring, grocery, attendance, LMS and e-commerce products, including PROTestim (10K+ downloads).',
       highlights: [
+        'Built PROTestim, a government exam proctoring app for Uzbekistan, with Flutter and Riverpod',
         'Implemented Google Maps, GIS tracking, geofencing and live location monitoring',
+        'Migrated Competition Community (50K+ downloads) from an outdated codebase to the latest React Native',
         'Built secure authentication, real-time dashboards and payment-enabled workflows',
-        'Worked across multiple production apps while maintaining UX quality and delivery speed',
       ],
       url: 'https://demo.digikraftsocial.com/',
     ),
@@ -154,11 +374,11 @@ abstract final class PortfolioContent {
       period: 'Jun 2023 - May 2024',
       location: 'Raipur, India',
       summary:
-          'Delivered 60-70% of Flutter UI and business logic for a quotation management platform backed by Laravel APIs.',
+          'Delivered Flutter UI, business logic and Laravel APIs for FixQ, FixHR and the BBK / My Baby Connect school platforms.',
       highlights: [
-        'Built dashboards, quotation workflows and role-based access modules',
+        'Built dashboards, quotation workflows and role-based access modules for FixQ',
+        'Implemented Laravel REST APIs and integrated them in Flutter for BBK and MBC',
         'Collaborated on API integration, data verification and reusable component systems',
-        'Supported a complex quotation product with production-ready workflows',
       ],
       url: 'https://fixingdots.com/',
     ),
@@ -222,10 +442,7 @@ abstract final class PortfolioContent {
       value: '4th',
       label: 'Rank in overall CSE branch till 8th semester',
     ),
-    AchievementItem(
-      value: '100+',
-      label: 'Coding problems solved across platforms',
-    ),
+    AchievementItem(value: '8', label: 'Apps live on Google Play'),
     AchievementItem(value: '8.14', label: 'B.Tech CGPA from CSVTU'),
   ];
 
@@ -235,12 +452,6 @@ abstract final class PortfolioContent {
       subtitle: email,
       url: 'mailto:aniketparihar.0505@gmail.com',
       icon: Icons.mail_outline_rounded,
-    ),
-    ContactAction(
-      title: 'Call',
-      subtitle: phone,
-      url: 'tel:+918770561223',
-      icon: Icons.call_outlined,
     ),
     ContactAction(
       title: 'LinkedIn',

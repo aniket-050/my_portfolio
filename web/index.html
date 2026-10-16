@@ -34,11 +34,17 @@
     property="og:description"
     content="Professional Flutter web portfolio for Aniket Parihar, focused on BLoC, GIS, location systems and production-ready mobile apps."
   >
+  <meta property="og:url" content="https://aniket-050.github.io/my_portfolio/">
+  <meta property="og:image" content="https://aniket-050.github.io/my_portfolio/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Aniket Parihar, Flutter engineer with 60K+ Play Store installs">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://aniket-050.github.io/my_portfolio/og-image.jpg">
   <meta name="twitter:title" content="Aniket Parihar | Flutter Engineer">
   <meta
     name="twitter:description"
-    content="Flutter engineer building production apps around maps, motion and scalable state management."
+    content="Flutter engineer with 8 apps on Google Play and 60K+ installs, focused on maps, GIS, geofencing and real-time products."
   >
 
   <!-- iOS meta tags & icons -->
@@ -52,8 +58,52 @@
 
   <title>Aniket Parihar | Flutter Engineer</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { margin: 0; background: #F5F1EA; }
+    #app-loader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+      background: #F5F1EA; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: opacity 360ms ease;
+    }
+    #app-loader.hidden { opacity: 0; pointer-events: none; }
+    #app-loader .mark {
+      width: 72px; height: 72px; border-radius: 24px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, #FF8A5B, #F45DB3);
+      color: #fff; font-weight: 800; font-size: 26px; letter-spacing: -0.5px;
+      box-shadow: 0 18px 40px rgba(41, 55, 246, 0.18);
+      animation: loader-pulse 1.4s ease-in-out infinite;
+    }
+    #app-loader .name { color: #0E1330; font-weight: 700; font-size: 18px; }
+    #app-loader .role { color: #0E1330; opacity: 0.6; font-size: 14px; margin-top: -14px; }
+    #app-loader .bar { width: 160px; height: 4px; border-radius: 4px; background: rgba(41, 55, 246, 0.12); overflow: hidden; }
+    #app-loader .bar::after {
+      content: ""; display: block; width: 40%; height: 100%; border-radius: 4px; background: #2937F6;
+      animation: loader-slide 1.1s ease-in-out infinite;
+    }
+    @keyframes loader-pulse { 50% { transform: scale(0.94); } }
+    @keyframes loader-slide { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+    @media (prefers-reduced-motion: reduce) {
+      #app-loader .mark, #app-loader .bar::after { animation: none; }
+    }
+  </style>
 </head>
 <body>
+  <div id="app-loader" role="status" aria-label="Loading portfolio">
+    <div class="mark">AP</div>
+    <div class="name">Aniket Parihar</div>
+    <div class="role">Flutter Engineer</div>
+    <div class="bar"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var loader = document.getElementById('app-loader');
+      if (!loader) return;
+      loader.classList.add('hidden');
+      setTimeout(function () { loader.remove(); }, 400);
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -297,6 +297,10 @@ class EditablePortfolioStore extends ChangeNotifier {
     return value is String && value.trim().isNotEmpty ? value : fallback;
   }
 
+  String? _optionalString(Object? value) {
+    return value is String && value.trim().isNotEmpty ? value : null;
+  }
+
   List<String> _stringList(Object? value, List<String> fallback) {
     if (value is! List) {
       return fallback;
@@ -343,6 +347,12 @@ class EditablePortfolioStore extends ChangeNotifier {
     'contribution': item.contribution,
     'highlights': item.highlights,
     'stack': item.stack,
+    'links': [
+      for (final link in item.links) {'label': link.label, 'url': link.url},
+    ],
+    'images': item.images,
+    'iconAsset': item.iconAsset,
+    'metric': item.metric,
   };
 
   ProjectItem _projectFromJson(Map<String, Object?> json) => ProjectItem(
@@ -354,6 +364,17 @@ class EditablePortfolioStore extends ChangeNotifier {
     contribution: _string(json['contribution'], ''),
     highlights: _stringList(json['highlights'], const []),
     stack: _stringList(json['stack'], const []),
+    links: _list(
+      json['links'],
+      (link) => ProjectLink(
+        label: _string(link['label'], 'Link'),
+        url: _string(link['url'], ''),
+      ),
+      const <ProjectLink>[],
+    ).where((link) => link.url.isNotEmpty).toList(),
+    images: _stringList(json['images'], const []),
+    iconAsset: _optionalString(json['iconAsset']),
+    metric: _optionalString(json['metric']),
   );
 
   Map<String, Object?> _experienceToJson(ExperienceItem item) => {

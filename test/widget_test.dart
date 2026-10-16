@@ -16,7 +16,7 @@ void main() {
     expect(find.text('Aniket Parihar'), findsWidgets);
     expect(
       find.text(
-        'Flutter engineer building products around maps, motion and scale.',
+        'Flutter engineer shipping production apps with 60K+ Play Store installs.',
       ),
       findsOneWidget,
     );

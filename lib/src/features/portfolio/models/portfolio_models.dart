@@ -122,6 +122,18 @@ class ExperienceItem extends Equatable {
   ];
 }
 
+class ProjectLink extends Equatable {
+  const ProjectLink({required this.label, required this.url});
+
+  final String label;
+  final String url;
+
+  bool get isPlayStore => url.contains('play.google.com');
+
+  @override
+  List<Object?> get props => [label, url];
+}
+
 class ProjectItem extends Equatable {
   const ProjectItem({
     required this.id,
@@ -132,6 +144,10 @@ class ProjectItem extends Equatable {
     required this.contribution,
     required this.highlights,
     required this.stack,
+    this.links = const [],
+    this.images = const [],
+    this.iconAsset,
+    this.metric,
   });
 
   final String id;
@@ -143,6 +159,16 @@ class ProjectItem extends Equatable {
   final List<String> highlights;
   final List<String> stack;
 
+  /// Store listings, live websites and reference pages.
+  final List<ProjectLink> links;
+
+  /// Phone screenshots, or a single landscape mockup.
+  final List<String> images;
+  final String? iconAsset;
+
+  /// Short verifiable proof point, such as Play Store installs.
+  final String? metric;
+
   ProjectItem copyWith({
     String? id,
     String? title,
@@ -152,6 +178,10 @@ class ProjectItem extends Equatable {
     String? contribution,
     List<String>? highlights,
     List<String>? stack,
+    List<ProjectLink>? links,
+    List<String>? images,
+    String? iconAsset,
+    String? metric,
   }) {
     return ProjectItem(
       id: id ?? this.id,
@@ -162,6 +192,10 @@ class ProjectItem extends Equatable {
       contribution: contribution ?? this.contribution,
       highlights: highlights ?? this.highlights,
       stack: stack ?? this.stack,
+      links: links ?? this.links,
+      images: images ?? this.images,
+      iconAsset: iconAsset ?? this.iconAsset,
+      metric: metric ?? this.metric,
     );
   }
 
@@ -175,6 +209,10 @@ class ProjectItem extends Equatable {
     contribution,
     highlights,
     stack,
+    links,
+    images,
+    iconAsset,
+    metric,
   ];
 }
 
