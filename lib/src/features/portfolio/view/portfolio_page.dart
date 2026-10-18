@@ -2680,68 +2680,67 @@ class _ProjectMedia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final images = project.images;
+    final images = project.images.take(3).toList();
 
-    if (images.length == 1) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: AspectRatio(
-          aspectRatio: 16 / 10,
-          child: _ZoomableProjectImage(
-            source: images.first,
-            title: project.title,
-            fit: BoxFit.cover,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // One shared height keeps every project card's media area, and every
+        // screenshot inside it, the same size.
+        final height = (constraints.maxWidth * 0.56).clamp(190.0, 300.0);
+
+        if (images.length == 1) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: SizedBox(
+              width: double.infinity,
+              height: height,
+              child: _ZoomableProjectImage(
+                source: images.first,
+                title: project.title,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          width: double.infinity,
+          height: height,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppPalette.sky.withValues(alpha: 0.28),
+                AppPalette.coral.withValues(alpha: 0.16),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
           ),
-        ),
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppPalette.sky.withValues(alpha: 0.28),
-            AppPalette.coral.withValues(alpha: 0.16),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: images.isEmpty
-          ? _ProjectMediaPlaceholder(project: project)
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (int index = 0; index < images.take(3).length; index++)
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: index == 0 ? 0 : 6,
-                        right: index == 2 ? 0 : 6,
-                        // Middle screenshot sits higher for a staggered look.
-                        bottom: index == 1 ? 18 : 0,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                          bottom: Radius.circular(16),
-                        ),
-                        child: AspectRatio(
-                          aspectRatio: 9 / 17,
-                          child: _ZoomableProjectImage(
-                            source: images[index],
-                            title: project.title,
-                            fit: BoxFit.cover,
+          child: images.isEmpty
+              ? _ProjectMediaPlaceholder(project: project)
+              : Row(
+                  children: [
+                    for (int index = 0; index < images.length; index++) ...[
+                      if (index > 0) const SizedBox(width: 10),
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: SizedBox.expand(
+                            child: _ZoomableProjectImage(
+                              source: images[index],
+                              title: project.title,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
-            ),
+                    ],
+                  ],
+                ),
+        );
+      },
     );
   }
 }
@@ -2759,10 +2758,9 @@ class _ProjectMediaPlaceholder extends StatelessWidget {
         .whereType<String>()
         .firstOrNull;
 
-    return SizedBox(
-      height: 180,
+    return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (project.iconAsset != null)
             ClipRRect(
@@ -2785,7 +2783,6 @@ class _ProjectMediaPlaceholder extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 18),
         ],
       ),
     );
@@ -2851,12 +2848,15 @@ class _ProjectImage extends StatelessWidget {
         ? Image.network(
             source,
             fit: fit,
+            // Keep screenshot captions and app headers visible when cropped.
+            alignment: Alignment.topCenter,
             filterQuality: FilterQuality.medium,
             errorBuilder: fallback,
           )
         : Image.asset(
             source,
             fit: fit,
+            alignment: Alignment.topCenter,
             filterQuality: FilterQuality.medium,
             errorBuilder: fallback,
           );

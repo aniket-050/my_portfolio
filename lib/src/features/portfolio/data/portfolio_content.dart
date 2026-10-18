@@ -34,7 +34,7 @@ abstract final class PortfolioContent {
       detail: 'Across real estate, education, attendance and commerce.',
     ),
     PortfolioStat(
-      value: '02+',
+      value: '03+',
       label: 'Years in Production',
       detail: 'Shipping business-critical mobile experiences since 2023.',
     ),
@@ -74,11 +74,11 @@ abstract final class PortfolioContent {
       id: 'emilo',
       title: 'eMILO',
       category: 'Social networking app',
-      timeline: 'Current work • Live on Google Play',
+      timeline: 'Emilo Ventures Pvt Ltd • Current work',
       description:
           'A social media app that goes beyond the feed: friends, chat, posts, photos, videos and stories, plus Soft Corner, a private space made just for two.',
       contribution:
-          'Building and shipping product features for a live consumer social app, from feed and media experiences to chat and privacy-focused flows.',
+          'Building and shipping Flutter features at Emilo Ventures for a live consumer social app, from feed and media experiences to chat and privacy-focused flows.',
       highlights: [
         'Feed, stories, photo and video sharing in one social experience',
         'Friends, real-time chat and community features',
@@ -129,12 +129,12 @@ abstract final class PortfolioContent {
       metric: '10K+ downloads',
     ),
     ProjectItem(
-      id: 'attendance',
-      title: 'Attendance Management • Flash Force',
-      category: 'Location-based workforce system',
-      timeline: 'Digikraft Social • Production feature ownership',
+      id: 'flashforce',
+      title: 'Flash Force',
+      category: 'Field-force attendance & tracking',
+      timeline: 'Production feature ownership',
       description:
-          'Enterprise attendance and field-force tracking built around verified presence, including Flash Force, a sales and workforce tracking app for organisations.',
+          'An enterprise workforce attendance and sales-tracking app that helps organisations verify presence, follow field routes and report on productivity.',
       contribution:
           'Implemented geofenced attendance, live employee tracking and secure role-driven workflows.',
       highlights: [
@@ -153,7 +153,6 @@ abstract final class PortfolioContent {
           label: 'Website',
           url: 'https://appwizz.in/flash-force/index.php',
         ),
-        ProjectLink(label: 'Digikraft projects', url: _digikraftProjects),
       ],
       images: [
         'assets/images/projects/flashforce_1.webp',
@@ -162,6 +161,26 @@ abstract final class PortfolioContent {
       ],
       iconAsset: 'assets/images/projects/flashforce_icon.webp',
       metric: '500+ downloads',
+    ),
+    ProjectItem(
+      id: 'attendance',
+      title: 'Attendance Management App',
+      category: 'Location-based workforce system',
+      timeline: 'Digikraft Social • Flutter',
+      description:
+          'A mobile application for tracking and managing employee attendance efficiently, with swipe-to-check-in, team views and attendance insights for HR.',
+      contribution:
+          'Implemented geofenced attendance, live employee tracking and secure role-driven workflows.',
+      highlights: [
+        'Geofence-validated check-in and check-out',
+        'Self and team attendance history with location context',
+        'HR dashboard with present, on-leave and remote-work insights',
+      ],
+      stack: ['Flutter', 'Geofencing', 'Google Maps SDK', 'RBAC'],
+      links: [
+        ProjectLink(label: 'Digikraft projects', url: _digikraftProjects),
+      ],
+      images: ['assets/images/projects/attendance_mockup.jpg'],
     ),
     ProjectItem(
       id: 'gharkasathi',
@@ -354,12 +373,26 @@ abstract final class PortfolioContent {
 
   static const List<ExperienceItem> experience = [
     ExperienceItem(
+      role: 'Flutter Developer',
+      company: 'Emilo Ventures Pvt Ltd',
+      period: 'Jun 2026 - Present',
+      location: 'India',
+      summary:
+          'Building eMILO, a live social networking app on Google Play, with Flutter.',
+      highlights: [
+        'Shipping feed, stories, photo and video sharing features',
+        'Working on friends, real-time chat and community experiences',
+        'Contributing to Soft Corner, a private couple space with AI-powered matching',
+      ],
+      url: 'https://play.google.com/store/apps/details?id=com.emilo.app',
+    ),
+    ExperienceItem(
       role: 'Mobile Application Developer',
       company: 'Digikraft Social',
-      period: 'May 2024 - Present',
+      period: 'May 2024 - Jun 2026',
       location: 'Raipur, India',
       summary:
-          'Leading Flutter development across exam proctoring, grocery, attendance, LMS and e-commerce products, including PROTestim (10K+ downloads).',
+          'Led Flutter development across exam proctoring, grocery, attendance, LMS and e-commerce products, including PROTestim (10K+ downloads).',
       highlights: [
         'Built PROTestim, a government exam proctoring app for Uzbekistan, with Flutter and Riverpod',
         'Implemented Google Maps, GIS tracking, geofencing and live location monitoring',
