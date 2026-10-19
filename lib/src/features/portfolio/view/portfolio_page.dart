@@ -2358,20 +2358,45 @@ class _ProjectsPanelState extends State<_ProjectsPanel> {
                   ? constraints.maxWidth
                   : (constraints.maxWidth - 16) / 2;
 
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
+              final perRow = cardWidth == constraints.maxWidth ? 1 : 2;
+
+              // Rows of IntrinsicHeight + stretch keep every card in a row
+              // the same height as its tallest neighbour.
+              return Column(
                 children: [
-                  for (int index = 0; index < projects.length; index++)
-                    SizedBox(
-                      width: cardWidth,
-                      child: RevealOnScroll(
-                        delay: Duration(milliseconds: 70 * ((index % 2) + 1)),
-                        child: _ProjectCard(
-                          project: projects[index],
-                          isHovered:
-                              widget.hoveredProjectId == projects[index].id,
-                          onLaunch: widget.onLaunch,
+                  for (int start = 0; start < projects.length; start += perRow)
+                    Padding(
+                      padding: EdgeInsets.only(top: start == 0 ? 0 : 16),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (
+                              int index = start;
+                              index < start + perRow;
+                              index++
+                            ) ...[
+                              if (index > start) const SizedBox(width: 16),
+                              SizedBox(
+                                width: cardWidth,
+                                child: index < projects.length
+                                    ? RevealOnScroll(
+                                        delay: Duration(
+                                          milliseconds: 70 * ((index % 2) + 1),
+                                        ),
+                                        child: _ProjectCard(
+                                          project: projects[index],
+                                          width: cardWidth,
+                                          isHovered:
+                                              widget.hoveredProjectId ==
+                                              projects[index].id,
+                                          onLaunch: widget.onLaunch,
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
@@ -2418,11 +2443,15 @@ class _ProjectsPanelState extends State<_ProjectsPanel> {
 class _ProjectCard extends StatelessWidget {
   const _ProjectCard({
     required this.project,
+    required this.width,
     required this.isHovered,
     required this.onLaunch,
   });
 
+  static const double _padding = 22;
+
   final ProjectItem project;
+  final double width;
   final bool isHovered;
   final ValueChanged<String> onLaunch;
 
@@ -2437,7 +2466,7 @@ class _ProjectCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 260),
         transform: Matrix4.identity()..translate(0.0, isHovered ? -10.0 : 0.0),
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(_padding),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
@@ -2454,7 +2483,7 @@ class _ProjectCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ProjectMedia(project: project),
+            _ProjectMedia(project: project, width: width - _padding * 2),
             const SizedBox(height: 20),
             Wrap(
               spacing: 10,
@@ -2613,6 +2642,8 @@ class _ProjectCard extends StatelessWidget {
                   )
                   .toList(),
             ),
+            // Pins the link buttons to the bottom of equal-height cards.
+            const Spacer(),
             if (project.links.isNotEmpty) ...[
               const SizedBox(height: 18),
               Wrap(
@@ -2674,73 +2705,70 @@ IconData _projectLinkIcon(ProjectLink link) {
 }
 
 class _ProjectMedia extends StatelessWidget {
-  const _ProjectMedia({required this.project});
+  const _ProjectMedia({required this.project, required this.width});
 
   final ProjectItem project;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     final images = project.images.take(3).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // One shared height keeps every project card's media area, and every
-        // screenshot inside it, the same size.
-        final height = (constraints.maxWidth * 0.56).clamp(190.0, 300.0);
+    // One shared height keeps every project card's media area, and every
+    // screenshot inside it, the same size.
+    final height = (width * 0.56).clamp(190.0, 300.0);
 
-        if (images.length == 1) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: SizedBox(
-              width: double.infinity,
-              height: height,
-              child: _ZoomableProjectImage(
-                source: images.first,
-                title: project.title,
-                fit: BoxFit.cover,
-              ),
-            ),
-          );
-        }
-
-        return Container(
+    if (images.length == 1) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: SizedBox(
           width: double.infinity,
           height: height,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppPalette.sky.withValues(alpha: 0.28),
-                AppPalette.coral.withValues(alpha: 0.16),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
+          child: _ZoomableProjectImage(
+            source: images.first,
+            title: project.title,
+            fit: BoxFit.cover,
           ),
-          child: images.isEmpty
-              ? _ProjectMediaPlaceholder(project: project)
-              : Row(
-                  children: [
-                    for (int index = 0; index < images.length; index++) ...[
-                      if (index > 0) const SizedBox(width: 10),
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: SizedBox.expand(
-                            child: _ZoomableProjectImage(
-                              source: images[index],
-                              title: project.title,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      height: height,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppPalette.sky.withValues(alpha: 0.28),
+            AppPalette.coral.withValues(alpha: 0.16),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: images.isEmpty
+          ? _ProjectMediaPlaceholder(project: project)
+          : Row(
+              children: [
+                for (int index = 0; index < images.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 10),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: SizedBox.expand(
+                        child: _ZoomableProjectImage(
+                          source: images[index],
+                          title: project.title,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                    ],
-                  ],
-                ),
-        );
-      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
     );
   }
 }
