@@ -7,6 +7,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/breakpoints.dart';
+import '../../../core/widgets/count_up_text.dart';
 import '../../../core/widgets/reveal_on_scroll.dart';
 import '../bloc/portfolio_bloc.dart';
 import '../data/editable_portfolio_store.dart';
@@ -372,6 +373,17 @@ class _BlurCircle extends StatelessWidget {
   }
 }
 
+/// True on phone-sized screens. The scaled desktop hero reports a desktop
+/// MediaQuery, so it never takes the phone path.
+bool _isPhone(BuildContext context) =>
+    Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
+
+/// Outer padding for full-width section panels.
+double _sectionPadding(BuildContext context) => _isPhone(context) ? 18 : 28;
+
+/// Corner radius for full-width section panels.
+double _sectionRadius(BuildContext context) => _isPhone(context) ? 30 : 40;
+
 class _PortfolioHeader extends StatelessWidget {
   const _PortfolioHeader({
     required this.availableWidth,
@@ -394,7 +406,7 @@ class _PortfolioHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final compactBrand = availableWidth < 430;
+    final compactBrand = availableWidth < 300;
     final navItems = PortfolioSection.values
         .map(
           (section) => _HeaderNavButton(
@@ -407,7 +419,10 @@ class _PortfolioHeader extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 280),
-      padding: EdgeInsets.all(isMobile ? 14 : 18),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 18,
+        vertical: isMobile ? 10 : 18,
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.86),
         borderRadius: BorderRadius.circular(28),
@@ -423,34 +438,31 @@ class _PortfolioHeader extends StatelessWidget {
       child: Column(
         children: [
           if (isMobile)
-            SizedBox(
-              width: double.infinity,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: _BrandLockup(compact: compactBrand),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: onMenuToggle,
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppPalette.surface,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        fixedSize: const Size(52, 52),
-                      ),
-                      icon: Icon(
-                        isMenuOpen ? Icons.close_rounded : Icons.menu_rounded,
-                        color: AppPalette.ink,
-                      ),
+            Row(
+              children: [
+                Expanded(
+                  child: _BrandLockup(compact: compactBrand, small: true),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: onMenuToggle,
+                  tooltip: isMenuOpen ? 'Close menu' : 'Open menu',
+                  style: IconButton.styleFrom(
+                    backgroundColor: isMenuOpen
+                        ? AppPalette.ink
+                        : AppPalette.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: const BorderSide(color: AppPalette.line),
                     ),
+                    fixedSize: const Size(44, 44),
                   ),
-                ],
-              ),
+                  icon: Icon(
+                    isMenuOpen ? Icons.close_rounded : Icons.menu_rounded,
+                    color: isMenuOpen ? Colors.white : AppPalette.ink,
+                  ),
+                ),
+              ],
             )
           else
             Row(
@@ -544,9 +556,12 @@ class _ScrollProgressBar extends StatelessWidget {
 }
 
 class _BrandLockup extends StatelessWidget {
-  const _BrandLockup({this.compact = false});
+  const _BrandLockup({this.compact = false, this.small = false});
 
   final bool compact;
+
+  /// Phone header variant with a smaller badge.
+  final bool small;
 
   @override
   Widget build(BuildContext context) {
@@ -557,11 +572,11 @@ class _BrandLockup extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 52,
-          height: 52,
+          width: small ? 44 : 52,
+          height: small ? 44 : 52,
           decoration: BoxDecoration(
             gradient: AppPalette.accentGradient,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(small ? 15 : 18),
           ),
           alignment: Alignment.center,
           child: Text(
@@ -737,19 +752,28 @@ class _HomePanel extends StatelessWidget {
         return ConstrainedBox(
           constraints: BoxConstraints(minHeight: minHeight),
           child: Container(
-            padding: EdgeInsets.all(stacked ? 16 : 18),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: AppPalette.line),
-              boxShadow: [
-                BoxShadow(
-                  color: AppPalette.ink.withValues(alpha: 0.05),
-                  blurRadius: 40,
-                  offset: const Offset(0, 18),
-                ),
-              ],
+            // Phones drop the outer wrapper so the hero gets the full width.
+            padding: EdgeInsets.all(
+              _isPhone(context)
+                  ? 0
+                  : stacked
+                  ? 16
+                  : 18,
             ),
+            decoration: _isPhone(context)
+                ? null
+                : BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(color: AppPalette.line),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppPalette.ink.withValues(alpha: 0.05),
+                        blurRadius: 40,
+                        offset: const Offset(0, 18),
+                      ),
+                    ],
+                  ),
             child: stacked
                 ? Column(
                     children: [
@@ -922,7 +946,7 @@ class _SidebarRail extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          CountUpText(
                             item.value,
                             style: theme.textTheme.titleLarge?.copyWith(
                               color: AppPalette.cobalt,
@@ -1049,11 +1073,12 @@ class _HeroCanvas extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: stacked ? -18 : -40,
-                top: stacked ? -24 : -56,
-                child: const _OrbitalShape(),
-              ),
+              if (!_isPhone(context))
+                Positioned(
+                  left: stacked ? -18 : -40,
+                  top: stacked ? -24 : -56,
+                  child: const _OrbitalShape(),
+                ),
               if (stacked)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1116,6 +1141,7 @@ class _HeroCopyBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final content = PortfolioScope.of(context);
+    final phone = _isPhone(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1144,8 +1170,7 @@ class _HeroCopyBlock extends StatelessWidget {
             final compactHeadline = compact || constraints.maxWidth < 480;
             return Text(
               content.headline,
-              maxLines: compact ? 4 : null,
-              overflow: compact ? TextOverflow.ellipsis : null,
+
               style:
                   (compactHeadline
                           ? theme.textTheme.headlineLarge
@@ -1164,8 +1189,7 @@ class _HeroCopyBlock extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
             content.summary,
-            maxLines: compact ? 4 : null,
-            overflow: compact ? TextOverflow.ellipsis : null,
+
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
             ),
@@ -1176,37 +1200,43 @@ class _HeroCopyBlock extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: [
-            FilledButton.icon(
-              onPressed: onProjectsTap,
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppPalette.ink,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 18,
+            SizedBox(
+              width: phone ? double.infinity : null,
+              child: FilledButton.icon(
+                onPressed: onProjectsTap,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppPalette.ink,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 18,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                icon: const Icon(Icons.north_east_rounded),
+                label: const Text('View Projects'),
               ),
-              icon: const Icon(Icons.north_east_rounded),
-              label: const Text('View Projects'),
             ),
-            OutlinedButton.icon(
-              onPressed: onResumeTap,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.22)),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 18,
+            SizedBox(
+              width: phone ? double.infinity : null,
+              child: OutlinedButton.icon(
+                onPressed: onResumeTap,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.22)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 18,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                icon: const Icon(Icons.download_rounded),
+                label: const Text('Download Resume'),
               ),
-              icon: const Icon(Icons.download_rounded),
-              label: const Text('Download Resume'),
             ),
             TextButton.icon(
               onPressed: onContactTap,
@@ -1222,6 +1252,10 @@ class _HeroCopyBlock extends StatelessWidget {
             ),
           ],
         ),
+        if (_isPhone(context) && content.stats.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _HeroStatsStrip(stats: content.stats),
+        ],
         SizedBox(height: compact ? 18 : 24),
         Wrap(
           spacing: 12,
@@ -1231,6 +1265,62 @@ class _HeroCopyBlock extends StatelessWidget {
               .toList(),
         ),
       ],
+    );
+  }
+}
+
+class _HeroStatsStrip extends StatelessWidget {
+  const _HeroStatsStrip({required this.stats});
+
+  final List<PortfolioStat> stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            for (int index = 0; index < stats.length; index++) ...[
+              if (index > 0)
+                VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: Colors.white.withValues(alpha: 0.16),
+                ),
+              Expanded(
+                child: Column(
+                  children: [
+                    CountUpText(
+                      stats[index].value,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      stats[index].label,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.76),
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1844,7 +1934,7 @@ class _HeroMetricPill extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            CountUpText(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -2084,21 +2174,25 @@ class _AboutPanel extends StatelessWidget {
         final stacked = constraints.maxWidth < 960;
 
         return Container(
-          padding: EdgeInsets.all(stacked ? 20 : 30),
+          padding: EdgeInsets.all(
+            _isPhone(context) ? _sectionPadding(context) : (stacked ? 20 : 30),
+          ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(_sectionRadius(context)),
             border: Border.all(color: AppPalette.line),
           ),
           child: stacked
               ? Column(
                   children: [
                     const RevealOnScroll(child: _AboutContent()),
-                    const SizedBox(height: 24),
-                    RevealOnScroll(
-                      delay: const Duration(milliseconds: 100),
-                      child: const _RibbonArtwork(),
-                    ),
+                    if (!_isPhone(context)) ...[
+                      const SizedBox(height: 24),
+                      RevealOnScroll(
+                        delay: const Duration(milliseconds: 100),
+                        child: const _RibbonArtwork(),
+                      ),
+                    ],
                   ],
                 )
               : Row(
@@ -2333,10 +2427,10 @@ class _ProjectsPanelState extends State<_ProjectsPanel> {
     final hiddenCount = content.projects.length - _featuredCount;
 
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(_sectionPadding(context)),
       decoration: BoxDecoration(
         color: AppPalette.ink,
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(_sectionRadius(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2360,6 +2454,28 @@ class _ProjectsPanelState extends State<_ProjectsPanel> {
 
               final perRow = cardWidth == constraints.maxWidth ? 1 : 2;
 
+              Widget card(int index) => RevealOnScroll(
+                delay: Duration(milliseconds: 70 * ((index % 2) + 1)),
+                child: _ProjectCard(
+                  project: projects[index],
+                  equalHeight: perRow > 1,
+                  isHovered: widget.hoveredProjectId == projects[index].id,
+                  onLaunch: widget.onLaunch,
+                ),
+              );
+
+              if (perRow == 1) {
+                return Column(
+                  children: [
+                    for (int index = 0; index < projects.length; index++)
+                      Padding(
+                        padding: EdgeInsets.only(top: index == 0 ? 0 : 16),
+                        child: card(index),
+                      ),
+                  ],
+                );
+              }
+
               // Rows of IntrinsicHeight + stretch keep every card in a row
               // the same height as its tallest neighbour.
               return Column(
@@ -2380,18 +2496,7 @@ class _ProjectsPanelState extends State<_ProjectsPanel> {
                               SizedBox(
                                 width: cardWidth,
                                 child: index < projects.length
-                                    ? RevealOnScroll(
-                                        delay: Duration(
-                                          milliseconds: 70 * ((index % 2) + 1),
-                                        ),
-                                        child: _ProjectCard(
-                                          project: projects[index],
-                                          isHovered:
-                                              widget.hoveredProjectId ==
-                                              projects[index].id,
-                                          onLaunch: widget.onLaunch,
-                                        ),
-                                      )
+                                    ? card(index)
                                     : const SizedBox.shrink(),
                               ),
                             ],
@@ -2442,13 +2547,15 @@ class _ProjectsPanelState extends State<_ProjectsPanel> {
 class _ProjectCard extends StatelessWidget {
   const _ProjectCard({
     required this.project,
+    required this.equalHeight,
     required this.isHovered,
     required this.onLaunch,
   });
 
-  static const double _padding = 22;
-
   final ProjectItem project;
+
+  /// True when the card is stretched to match a neighbour in its row.
+  final bool equalHeight;
   final bool isHovered;
   final ValueChanged<String> onLaunch;
 
@@ -2463,7 +2570,7 @@ class _ProjectCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 260),
         transform: Matrix4.identity()..translate(0.0, isHovered ? -10.0 : 0.0),
-        padding: const EdgeInsets.all(_padding),
+        padding: EdgeInsets.all(_isPhone(context) ? 16 : 22),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
@@ -2523,7 +2630,7 @@ class _ProjectCard extends StatelessWidget {
                           color: AppPalette.cobalt,
                         ),
                         const SizedBox(width: 6),
-                        Text(
+                        CountUpText(
                           project.metric!,
                           style: theme.textTheme.labelLarge?.copyWith(
                             color: AppPalette.cobalt,
@@ -2640,7 +2747,7 @@ class _ProjectCard extends StatelessWidget {
                   .toList(),
             ),
             // Pins the link buttons to the bottom of equal-height cards.
-            const Spacer(),
+            if (equalHeight) const Spacer(),
             if (project.links.isNotEmpty) ...[
               const SizedBox(height: 18),
               Wrap(
@@ -2899,10 +3006,10 @@ class _ExperiencePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(_sectionPadding(context)),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(_sectionRadius(context)),
         border: Border.all(color: AppPalette.line),
       ),
       child: Column(
@@ -3004,38 +3111,42 @@ class _ExperienceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final phone = _isPhone(context);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 28,
-          child: Column(
-            children: [
-              Container(
-                width: 14,
-                height: 14,
-                decoration: const BoxDecoration(
-                  color: AppPalette.cobalt,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              if (!isLast)
+        if (!phone) ...[
+          SizedBox(
+            width: 28,
+            child: Column(
+              children: [
                 Container(
-                  width: 2,
-                  height: 180,
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  color: AppPalette.line,
+                  width: 14,
+                  height: 14,
+                  decoration: const BoxDecoration(
+                    color: AppPalette.cobalt,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-            ],
+                if (!isLast)
+                  Container(
+                    width: 2,
+                    height: 180,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    color: AppPalette.line,
+                  ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
+          const SizedBox(width: 12),
+        ],
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(22),
+            padding: EdgeInsets.all(phone ? 18 : 22),
             decoration: BoxDecoration(
               color: AppPalette.surface,
-              borderRadius: BorderRadius.circular(26),
+              borderRadius: BorderRadius.circular(phone ? 22 : 26),
               border: Border.all(color: AppPalette.line),
             ),
             child: Column(
@@ -3125,7 +3236,7 @@ class _EducationCard extends StatelessWidget {
     final content = PortfolioScope.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(_isPhone(context) ? 18 : 22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppPalette.cobalt, AppPalette.violet],
@@ -3166,6 +3277,7 @@ class _EducationCard extends StatelessWidget {
             label: 'Result',
             value: content.educationResult,
             light: true,
+            animate: true,
           ),
           const SizedBox(height: 26),
           Container(
@@ -3195,10 +3307,10 @@ class _SkillsPanel extends StatelessWidget {
     final content = PortfolioScope.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(_sectionPadding(context)),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(_sectionRadius(context)),
         border: Border.all(color: AppPalette.line),
       ),
       child: Column(
@@ -3249,7 +3361,7 @@ class _SkillsPanel extends StatelessWidget {
             children: [
               for (final achievement in content.achievements)
                 SizedBox(
-                  width: 250,
+                  width: _isPhone(context) ? double.infinity : 250,
                   child: RevealOnScroll(
                     child: Container(
                       padding: const EdgeInsets.all(18),
@@ -3261,7 +3373,7 @@ class _SkillsPanel extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          CountUpText(
                             achievement.value,
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
@@ -3294,7 +3406,7 @@ class _SkillCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(_isPhone(context) ? 18 : 22),
       decoration: BoxDecoration(
         color: AppPalette.surface,
         borderRadius: BorderRadius.circular(28),
@@ -3343,10 +3455,10 @@ class _ContactPanel extends StatelessWidget {
     final content = PortfolioScope.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(_sectionPadding(context)),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(_sectionRadius(context)),
         border: Border.all(color: AppPalette.line),
       ),
       child: Column(
@@ -3354,7 +3466,7 @@ class _ContactPanel extends StatelessWidget {
         children: [
           RevealOnScroll(
             child: Container(
-              padding: const EdgeInsets.all(26),
+              padding: EdgeInsets.all(_isPhone(context) ? 20 : 26),
               decoration: BoxDecoration(
                 gradient: AppPalette.accentGradient,
                 borderRadius: BorderRadius.circular(32),
@@ -3484,7 +3596,9 @@ class _ContactActionsBar extends StatelessWidget {
     final content = PortfolioScope.of(context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: _isPhone(context)
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.start,
       children: [
         FilledButton.icon(
           onPressed: () => onLaunch('mailto:${content.email}'),
@@ -3615,10 +3729,11 @@ class _SectionIntro extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 760),
           child: Text(
             title,
-            style: theme.textTheme.headlineLarge?.copyWith(
-              color: headlineColor,
-              height: 1.08,
-            ),
+            style:
+                (_isPhone(context)
+                        ? theme.textTheme.headlineMedium
+                        : theme.textTheme.headlineLarge)
+                    ?.copyWith(color: headlineColor, height: 1.1),
           ),
         ),
         const SizedBox(height: 12),
@@ -3639,11 +3754,15 @@ class _MetricRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.light = false,
+    this.animate = false,
   });
 
   final String label;
   final String value;
   final bool light;
+
+  /// Counts the number in [value] up when it scrolls into view.
+  final bool animate;
 
   @override
   Widget build(BuildContext context) {
@@ -3658,12 +3777,20 @@ class _MetricRow extends StatelessWidget {
             context,
           ).textTheme.bodyMedium?.copyWith(color: color.withValues(alpha: 0.7)),
         ),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(color: color),
-        ),
+        if (animate)
+          CountUpText(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: color),
+          )
+        else
+          Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: color),
+          ),
       ],
     );
   }
